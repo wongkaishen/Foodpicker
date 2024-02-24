@@ -274,7 +274,6 @@ select {
 [type=reset],
 [type=submit],
 
-
 [type=button]:not(:disabled),
 [type=reset]:not(:disabled),
 [type=submit]:not(:disabled),
@@ -299,7 +298,7 @@ input[type=radio] {
 input[type=date],
 input[type=datetime-local],
 input[type=month],
-input[type=time] 
+input[type=time]
 
 textarea {
     overflow: auto;

@@ -119,13 +119,12 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = "/assets/"
-MEDIA_ROOT = "/media/"
+STATIC_URL = "assets/css/"
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "restaurant/assets")]
 VENV_PATH = os.path.dirname(BASE_DIR)
 STATIC_ROOT = os.path.join(VENV_PATH, "static_root")
 
-MEDIA_ROOT = os.path.join(BASE_DIR,'media')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
