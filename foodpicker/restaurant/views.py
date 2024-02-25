@@ -15,7 +15,6 @@ def restaurant(request):
 def about(request):
     return render(request, "homepage/content/about.html", {"title": "About"})
 
+
 def search(request):
     return render(request, "homepage/content/search.html", {"title": "Search"})
-
-

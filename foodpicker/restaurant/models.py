@@ -7,10 +7,29 @@ from django.db import models
 class Location(models.Model):
     name = models.CharField("Location Name", max_length=200)
     address = models.CharField(max_length=200)
-    zip_code = models.CharField("Zip Code", max_length=200)
-    phone = models.CharField("Contact Phone", max_length=25)
-    web = models.URLField("Web Address", max_length=200)
-    email_address = models.EmailField("Email Address", max_length=200)
+    zip_code = models.CharField(
+        "Zip Code",
+        max_length=200,
+        null=True,
+        blank=True,
+    )
+    phone = models.CharField(
+        "Contact Phone",
+        max_length=25,
+        null=True,
+        blank=True,
+    )
+    web = models.URLField(
+        "Web Address",
+        max_length=200,
+        blank=True,
+    )
+    email_address = models.EmailField(
+        "Email Address",
+        max_length=200,
+        null=True,
+        blank=True,
+    )
 
     def __str__(self):
         return self.name
@@ -25,7 +44,7 @@ class user(models.Model):
         return self.first_name + "" + self.last_name
 
 
-class Ratings(models.Model):
+class Rating(models.Model):
     ONE = 1
     TWO = 2
     THREE = 3
@@ -42,27 +61,26 @@ class Category(models.Model):
 
 
 class Restaurant(models.Model):
-    Name = models.CharField("Restaurant Name", max_length=200)
-    Location = models.ForeignKey(
+    name = models.CharField("Restaurant Name", max_length=200)
+    location = models.ForeignKey(
         Location, blank=True, null=True, on_delete=models.CASCADE
     )
-    Category = models.ManyToManyField(
+    category = models.ManyToManyField(
         Category,
         default="Non Categorized",
     )
-    Price = models.DecimalField(max_digits=10, decimal_places=2)
-    Time = models.TimeField(
+    price = models.DecimalField(max_digits=4, decimal_places=2)
+    time = models.DateTimeField(
         "Working Hour",
     )
-    Rates = models.IntegerField(
-        Ratings,
+    rate = models.IntegerField(
         null=True,
         blank=True,
     )
-    Customer = models.ManyToManyField(user, blank=True,)
-
+    customer = models.ManyToManyField(
+        user,
+        blank=True,
+    )
 
     def __str__(self):
-        return self.Name
-    
-    
+        return self.name
