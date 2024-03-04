@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 # Create your models here.
 
@@ -44,15 +44,6 @@ class user(models.Model):
         return self.first_name + "" + self.last_name
 
 
-class Rating(models.Model):
-    ONE = 1
-    TWO = 2
-    THREE = 3
-    FOUR = 4
-    FIVE = 5
-    __empty__ = "Unknown"
-
-
 class Category(models.Model):
     name = models.CharField(max_length=100)
 
@@ -60,27 +51,32 @@ class Category(models.Model):
         return self.name
 
 
+from django.db import models
+
 class Restaurant(models.Model):
     name = models.CharField("Restaurant Name", max_length=200)
     location = models.ForeignKey(
         Location, blank=True, null=True, on_delete=models.CASCADE
     )
-    category = models.ManyToManyField(
-        Category,
-        default="Non Categorized",
-    )
+    category = models.ManyToManyField(Category)
     price = models.DecimalField(max_digits=4, decimal_places=2)
-    time = models.DateTimeField(
-        "Working Hour",
-    )
-    rate = models.IntegerField(
+    time = models.DateTimeField("Working Hour")
+    rate = models.PositiveIntegerField(
         null=True,
         blank=True,
+        default=0,
+        validators=[MaxValueValidator(5), MinValueValidator(1)]
     )
-    customer = models.ManyToManyField(
-        user,
-        blank=True,
-    )
+    customer = models.ManyToManyField(user, blank=True)
+
+    def save(self, *args, **kwargs):
+        existing_restaurant = Restaurant.objects.filter(name=self.name, location=self.location).exists()
+        if existing_restaurant:
+            return
+        
+        super().save(*args, **kwargs)
+
+        self.category.set(self.category.all())
 
     def __str__(self):
         return self.name

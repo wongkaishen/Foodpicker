@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-
+import folium
 # Create your views here.
 
 
@@ -18,3 +18,6 @@ def about(request):
 
 def search(request):
     return render(request, "homepage/content/search.html", {"title": "Search"})
+
+def map(request):
+    return render(request, "homepage/content/map.html",{"title": "Map"})
