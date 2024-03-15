@@ -1,51 +1,99 @@
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css"
-  integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+{% load static %}
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/3.5.0/remixicon.css">
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-  <a class="navbar-brand" href="{% url 'res.home' %}">FoodPicker</a>
-  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
-    aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
-  </button>
+<!--=============== CSS ===============-->
+<link rel="stylesheet" href="{% static 'css/styles.css' %}">
+<!--==================== HEADER ====================-->
+<header class="header" id="header">
+  <nav class="nav container">
+    <a href="#" class="nav__link">FoodPicker</a>
 
-  <div class="collapse navbar-collapse" id="navbarSupportedContent">
-    <ul class="navbar-nav mr-auto">
-      <li class="nav-item active">
-        <a class="nav-link" href="{% url 'res.home' %}">Home</a>
-      </li>
-      <li class="nav-item active">
-        <a class="nav-link" href="{% url 'res.search' %}">Search</a>
-      </li>
-      <li class="nav-item active">
-        <a class="nav-link" href="{% url 'res.res' %}">Restaurant</a>
-      </li>
-      <li class="nav-item active">
-        <a class="nav-link" href="{% url 'res.map' %}">Map</a>
-      </li>
-      <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown"
-          aria-haspopup="true" aria-expanded="false">
-          More
-        </a>
-        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-          <a class="dropdown-item" href="{% url 'res.about' %}">About</a>
-          <a class="dropdown-item" href="{% url 'res.resform' %}">Form</a>
-          <div class="dropdown-divider"></div>
-          <a class="dropdown-item" href="#">Something else here</a>
-        </div>
-      </li>
-    </ul>
-    <form class="form-inline my-2 my-lg-0">
-      <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
-      <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-    </form>
-  </div>
-</nav>
+    <div class="nav__menu" id="nav-menu">
+      <ul class="nav__list">
+        <li class="nav__item">
+          <a href="{% url 'res.home' %}" class="nav__link">Home</a>
+        </li>
 
-<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
-  integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
-  integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/js/bootstrap.min.js"
-  integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+        <li class="nav__item">
+          <a href="{% url 'res.about' %}" class="nav__link">About Us</a>
+        </li>
+
+        <li class="nav__item">
+          <a href="#" class="nav__link">Services</a>
+        </li>
+
+        <li class="nav__item">
+          <a href="#" class="nav__link">Featured</a>
+        </li>
+
+        <li class="nav__item">
+          <a href="#" class="nav__link">Contact Me</a>
+        </li>
+      </ul>
+
+      <!-- Close button -->
+      <div class="nav__close" id="nav-close">
+        <i class="ri-close-line"></i>
+      </div>
+    </div>
+
+    <div class="nav__actions">
+      <!-- Search button -->
+      <i class="ri-search-line nav__search" id="search-btn"></i>
+
+      <!-- Login button -->
+      <i class="ri-user-line nav__login" id="login-btn"></i>
+
+      <!-- Toggle button -->
+      <div class="nav__toggle" id="nav-toggle">
+        <i class="ri-menu-line"></i>
+      </div>
+    </div>
+  </nav>
+</header>
+
+<!--==================== SEARCH ====================-->
+<div class="search" id="search">
+  <form action="" class="search__form">
+    <i class="ri-search-line search__icon"></i>
+    <input type="search" placeholder="What are you looking for?" class="search__input">
+  </form>
+
+  <i class="ri-close-line search__close" id="search-close"></i>
+</div>
+
+<!--==================== LOGIN ====================-->
+<div class="login" id="login">
+  <form action="" class="login__form">
+    <h2 class="login__title">Log In</h2>
+
+    <div class="login__group">
+      <div>
+        <label for="email" class="login__label">Email</label>
+        <input type="email" placeholder="Write your email" id="email" class="login__input">
+      </div>
+
+      <div>
+        <label for="password" class="login__label">Password</label>
+        <input type="password" placeholder="Enter your password" id="password" class="login__input">
+      </div>
+    </div>
+
+    <div>
+      <p class="login__signup">
+        You do not have an account? <a href="#">Sign up</a>
+      </p>
+
+      <a href="#" class="login__forgot">
+        You forgot your password
+      </a>
+
+      <button type="submit" class="login__button">Log In</button>
+    </div>
+  </form>
+
+  <i class="ri-close-line login__close" id="login-close"></i>
+</div>
+
+<script src="{% static 'js\main.js' %}"></script>

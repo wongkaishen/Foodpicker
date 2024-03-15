@@ -5,9 +5,10 @@
 <html lang="en">
 
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {% block title %}<title>{{ title }}</title>{% endblock title %}
     <link rel="icon" type="icon" href="{% static '\icon\icon.png' %}" />
-    <link rel="stylesheet" href="{% static 'font/footerfont.css' %}">
     {% include 'homepage/core/navbar.html' %}
 </head>
 
@@ -21,6 +22,6 @@
 
 </body>
 
-<footer> {% include 'homepage/core/footer.html' %} </footer>
+{% include 'homepage/core/footer.html' %}
 
 </html>
