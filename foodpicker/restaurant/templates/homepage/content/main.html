@@ -6,23 +6,21 @@
 
 <head>
     {% block title %}<title>{{ title }}</title>{% endblock title %}
-    <link rel="icon" type="images/res_icon.png" href="{% static 'images/res_icon.png' %}" />
-    
+    <link rel="icon" type="icon" href="{% static '\icon\icon.png' %}" />
+    <link rel="stylesheet" href="{% static 'font/footerfont.css' %}">
+    {% include 'homepage/core/navbar.html' %}
 </head>
 
 
 <body>
 
-    {% include 'homepage/core/navbar.html' %}
 
     {% block content %}
 
     {% endblock %}
 
-    {% include 'homepage/core/footer.html' %}
-
-
-
 </body>
+
+<footer> {% include 'homepage/core/footer.html' %} </footer>
 
 </html>

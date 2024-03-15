@@ -26,3 +26,4 @@ class CategoryForm(forms.ModelForm):
         if Category.objects.filter(name=name).exists():
             raise forms.ValidationError("A Category with the same name already exists.")
         return name
+

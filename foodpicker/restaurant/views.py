@@ -21,3 +21,6 @@ def search(request):
 
 def map(request):
     return render(request, "homepage/content/map.html",{"title": "Map"})
+
+def resform(request):
+    return render(request, "homepage\content\res_form.html",{"title": "Restaurant Form"})
