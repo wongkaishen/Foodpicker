@@ -20,17 +20,28 @@
         </li>
 
         <li class="nav__item">
-          <a href="#" class="nav__link">Services</a>
+          <a href="{% url 'res.res' %}" class="nav__link">Restaurant</a>
         </li>
 
         <li class="nav__item">
-          <a href="#" class="nav__link">Featured</a>
+          <a href="{% url 'res.map' %}" class="nav__link">Map</a>
         </li>
 
         <li class="nav__item">
-          <a href="#" class="nav__link">Contact Me</a>
+          <a href="{% url 'res.contact' %}" class="nav__link">Contact</a>
+        </li>
+
+        <li class="dropdown">
+          <button class="dropbtn">More</button>
+          <div class="dropdown-content">
+            <a href="{% url 'res.contact' %}">Form</a>
+            <a href="#">Link 2</a>
+            <a href="#">Link 3</a>
+          </div>
         </li>
       </ul>
+
+
 
       <!-- Close button -->
       <div class="nav__close" id="nav-close">

@@ -13,6 +13,7 @@
   --body-color: hsl(230, 100%, 98%);
   --container-color: hsl(230, 100%, 97%);
   --border-color: hsl(230, 25%, 80%);
+  --hover-color: #ece9e9;
 
   /*========== Font and typography ==========*/
   /*.5rem = 8px | 1rem = 16px ...*/
@@ -54,6 +55,7 @@ input,
 button {
   font-family: var(--body-font);
   font-size: var(--normal-font-size);
+
 }
 
 body {
@@ -169,7 +171,7 @@ img {
   transition: color .4s;
 }
 
-:is(.nav__logo, .nav__search, .nav__login, .nav__toggle, .nav__link):hover {
+:is(.nav__logo, .nav__search, .nav__login, .nav__toggle, .nav__link, .dropdown, .dropdown-content):hover {
   color: var(--first-color);
 }
 
@@ -249,6 +251,94 @@ img {
 .show-search .search__form {
   transform: translateY(0);
 }
+
+/*===============dropdown==============*/
+/* Dropdown Button */
+.dropbtn {
+  background-color: var(--body-color);
+  border: none;
+  font-weight: var(--font-semi-bold);
+  color: var(--title-color);
+}
+
+/* Change text color of "More" button on hover */
+.dropbtn:hover {
+  color: var(--first-color);
+  /* Change text color on hover */
+}
+
+/* Change background color of "More" button on hover */
+.dropbtn:hover {
+  background-color: var(--body-color);
+  /* Change background color on hover */
+}
+
+/* Change text color of "More" button when dropdown content is hovered */
+.dropdown:hover .dropbtn {
+  color: var(--first-color);
+  /* Change text color on hover of dropdown content */
+}
+
+/* Change background color of "More" button when dropdown content is hovered */
+.dropdown:hover .dropbtn {
+  background-color: var(--body-color);
+  /* Change background color on hover of dropdown content */
+}
+
+/* The container <div> - needed to position the dropdown content */
+.dropdown {
+  position: block;
+  display: inline-block;
+  color: var(--title-color);
+  transition: color .4s;
+}
+
+/* Dropdown Content (Hidden by Default) */
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #faf7f7;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+  color: var(--title-color);
+  font-weight: var(--font-semi-bold);
+  transition: background-color 0.4s;
+  /* Added transition for background-color */
+}
+
+
+/* Links inside the dropdown */
+.dropdown-content a {
+  color: var(--title-color);
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+  background-color: var(--body-color);
+  transition: color 0.4s;
+  /* Added transition for color */
+}
+
+/* Change color of dropdown links on hover */
+.dropdown-content a:hover {
+  background-color: var(--hover-color);
+  /* Change background color on hover */
+  color: var(--first-color);
+  /* Change text color on hover */
+}
+
+/* Show the dropdown menu on hover */
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+/* Change background color of block on hover */
+.dropdown:hover {
+  background-color: var(--hover-color);
+  /* Change background color on hover */
+}
+
+
 
 /*=============== LOGIN ===============*/
 .login__form,
@@ -337,54 +427,6 @@ img {
   transform: translateY(0);
 }
 
-.containers {
-  --bs-gutter-x: 1.5rem;
-  --bs-gutter-y: 0;
-  width: 100%;
-  padding-right: calc(var(--bs-gutter-x) * .5);
-  padding-left: calc(var(--bs-gutter-x) * .5);
-  margin-right: auto;
-  margin-left: auto;
-}
-
-.py-3 {
-  padding-top: 1rem !important;
-  padding-bottom: 1rem !important;
-  color: var(--title-color);
-  font-size: 1.1em;
-}
-
-.my-4 {
-  margin-bottom: 1.5rem !important;
-}
-
-.justify-content-center {
-  justify-content: center !important;
-}
-
-.border-bottom {
-  border-bottom: var(--bs-border-width) var(--bs-border-style) var(--bs-border-color) !important;
-}
-
-.nav {
-  --bs-nav-link-padding-x: 1rem;
-  --bs-nav-link-padding-y: 0.5rem;
-  --bs-nav-link-font-weight: ;
-  --bs-nav-link-color: var(--title-color);
-  --bs-nav-link-hover-color: var(--first-color);
-  list-style: none;
-  
-}
-
-.text-body-secondary {
-  --bs-text-opacity: 1;
-  color: var(--title-color) !important;
-}
-
-
-.text-center {
-  text-align: center !important;
-}
 
 /*=============== BREAKPOINTS ===============*/
 /* For medium devices */
@@ -446,4 +488,60 @@ img {
   .container {
     margin-inline: auto;
   }
+}
+
+.container {
+  --bs-gutter-x: 1.5rem;
+  --bs-gutter-y: 0;
+  width: 100%;
+  padding-right: calc(var(--bs-gutter-x) * .5);
+  padding-left: calc(var(--bs-gutter-x) * .5);
+  margin-right: auto;
+  margin-left: auto;
+  color: var(--title-color);
+  /* Set default text color */
+  transition: color 0.4s;
+  /* Add transition effect for color */
+}
+
+.container:hover {
+  color: var(--first-color);
+  /* Change text color on hover */
+}
+
+.py-3 {
+  padding-top: 1rem !important;
+  padding-bottom: 1rem !important;
+  font-size: 1.1em;
+}
+
+.my-4 {
+  margin-top: 1.5rem !important;
+  margin-bottom: 1.5rem !important;
+}
+
+.justify-content-center {
+  justify-content: center !important;
+}
+
+.border-bottom {
+  border-bottom: var(--bs-border-width) var(--bs-border-style) var(--bs-border-color) !important;
+}
+
+.nav {
+  --bs-nav-link-padding-x: 1rem;
+  --bs-nav-link-padding-y: 0.5rem;
+  --bs-nav-link-font-weight: ;
+  --bs-nav-link-color: var(--title-color);
+  --bs-nav-link-hover-color: var(--first-color);
+  list-style: none;
+}
+
+.text-body-secondary {
+  --bs-text-opacity: 1;
+  color: var(--text-color) !important;
+}
+
+.text-center {
+  text-align: center !important;
 }

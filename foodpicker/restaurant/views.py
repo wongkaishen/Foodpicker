@@ -1,9 +1,10 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-import folium
+
 # Create your views here.
 
 
+# Create your views here.
 def home(request):
     return render(request, "homepage/content/home.html", {"title": "Home"})
 
@@ -19,8 +20,12 @@ def about(request):
 def search(request):
     return render(request, "homepage/content/search.html", {"title": "Search"})
 
+
 def map(request):
     return render(request, "homepage/content/map.html",{"title": "Map"})
 
 def resform(request):
-    return render(request, "homepage\content\res_form.html",{"title": "Restaurant Form"})
+    return render(request, "homepage/content/res_form.html",{"title": "Restaurant Form"})
+
+def contact(request):
+    return render(request, "homepage/content/res_contact.html",{"title": "Contact"})
