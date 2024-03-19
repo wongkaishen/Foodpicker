@@ -7,24 +7,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}{% endblock title %}</title>
-    <link rel="icon" type="images/res_icon.png" href="{% static 'images/res_icon.png' %}" />
+    {% block title %}<title>{{ title }}</title>{% endblock title %}
+    <link rel="icon" type="icon" href="{% static '\icon\icon.png' %}" />
+    {% include 'homepage/core/navbar.html' %}
 </head>
 
 
 <body>
-
-    {% include 'homepage/core/navbar.html' %}
 
 
     {% block content %}
 
     {% endblock %}
 
-    {% include 'homepage/core/footer.html' %}
-
-    </h5>
-
 </body>
+
+{% include 'homepage/core/footer.html' %}
 
 </html>
