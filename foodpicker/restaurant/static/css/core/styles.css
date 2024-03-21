@@ -171,7 +171,7 @@ img {
   transition: color .4s;
 }
 
-:is(.nav__logo, .nav__search, .nav__login, .nav__toggle, .nav__link, .dropdown, .dropdown-content):hover {
+:is(.nav__logo, .nav__search, .nav__login, .nav__toggle, .nav__link, .dropdown):hover {
   color: var(--first-color);
 }
 

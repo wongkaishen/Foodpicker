@@ -3,11 +3,11 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/3.5.0/remixicon.css">
 
 <!--=============== CSS ===============-->
-<link rel="stylesheet" href="{% static 'css/styles.css' %}">
+<link rel="stylesheet" href="{% static 'css/core/styles.css' %}">
 <!--==================== HEADER ====================-->
 <header class="header" id="header">
   <nav class="nav container">
-    <a href="#" class="nav__link">FoodPicker</a>
+    <a href="{% url 'res.home' %}" class="nav__link">FoodPicker</a>
 
     <div class="nav__menu" id="nav-menu">
       <ul class="nav__list">
@@ -34,14 +34,12 @@
         <li class="dropdown">
           <button class="dropbtn">More</button>
           <div class="dropdown-content">
-            <a href="{% url 'res.contact' %}">Form</a>
+            <a href="{% url 'res.form' %}">Form</a>
             <a href="#">Link 2</a>
             <a href="#">Link 3</a>
           </div>
         </li>
       </ul>
-
-
 
       <!-- Close button -->
       <div class="nav__close" id="nav-close">
@@ -53,8 +51,17 @@
       <!-- Search button -->
       <i class="ri-search-line nav__search" id="search-btn"></i>
 
-      <!-- Login button -->
-      <i class="ri-user-line nav__login" id="login-btn"></i>
+      <!-- User actions -->
+      <li class="nav container">
+        {% if user.is_authenticated %}
+        <div class="nav__menu">
+          <h3>Welcome, {{ user.username }}</h3>
+          <a href="/signout" class="nav__link">Sign out</a>
+        </div>
+        {% else %}
+        <a href="#" class="ri-user-line nav__login" id="login-btn"></a>
+        {% endif %}
+      </li>
 
       <!-- Toggle button -->
       <div class="nav__toggle" id="nav-toggle">
@@ -75,36 +82,37 @@
 </div>
 
 <!--==================== LOGIN ====================-->
+
+
+
 <div class="login" id="login">
-  <form action="" class="login__form">
+  <form action="{% url 'signin' %}" method="POST" class="login__form">
+    {% csrf_token %}
     <h2 class="login__title">Log In</h2>
 
     <div class="login__group">
       <div>
-        <label for="email" class="login__label">Email</label>
-        <input type="email" placeholder="Write your email" id="email" class="login__input">
+        <label for="" class="login__label">Username</label>
+        <input type="text" placeholder="Enter your Username" name="username" class="login__input" required>
       </div>
 
       <div>
-        <label for="password" class="login__label">Password</label>
-        <input type="password" placeholder="Enter your password" id="password" class="login__input">
+        <label for="" class="login__label">Password</label>
+        <input type="password" placeholder="Enter your Password" name="pass1" class="login__input" required>
       </div>
     </div>
-
     <div>
       <p class="login__signup">
-        You do not have an account? <a href="#">Sign up</a>
+        You do not have an account? <a href="{% url 'signup' %}">Sign up</a>
       </p>
+      <a href="#" class="login__forgot">Forgot password?</a>
 
-      <a href="#" class="login__forgot">
-        You forgot your password
-      </a>
 
       <button type="submit" class="login__button">Log In</button>
     </div>
   </form>
-
   <i class="ri-close-line login__close" id="login-close"></i>
 </div>
+
 
 <script src="{% static 'js\main.js' %}"></script>

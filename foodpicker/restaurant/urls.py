@@ -7,6 +7,11 @@ urlpatterns = [
     path('about/',views.about,name="res.about"),   
     path('search/',views.search,name="res.search"),  
     path('map/',views.map,name="res.map"),   
-    path('restaurant_form/',views.resform,name="res.resform"),   
+    path('restaurant_form/',views.form,name="res.form"),   
     path('contact/',views.contact,name="res.contact"), 
+
+    
+    path('signup',views.signup,name="signup"),
+    path('signin',views.signin,name="signin"),
+    path('signout',views.signout,name="signout"),
 ]
