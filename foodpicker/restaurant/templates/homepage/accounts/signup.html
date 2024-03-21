@@ -10,37 +10,116 @@
     </button>
 </div>
 {% endfor %}
-
 <link rel="stylesheet" href="{% static 'css/accounts/signup.css' %}">
-<form action="/signup" method="POST" class="signup_main">
-    {% csrf_token %}
-    <label for="">Username</label>
-    <input type="text" id="username" name="username" placeholder="Create a Username" required>
-    <br>
 
-    <label for="">First Name</label>
-    <input type="text" id="fname" name="fname" placeholder="Enter your First Name" required>
-    <br>
+<body>
+    <div class="container">
 
-    <label for="">Last Name</label>
-    <input type="text" id="lname" name="lname" placeholder="Enter your Last Name" required>
-    <br>
+        <div id="LoginAndRegistrationForm">
+            <h1 id="formTitle">Login</h1>
+            <div id="formSwitchBtn">
+                <button onclick="ShowLoginForm()" id="ShowLoginBtn" class="active">Login</button>
+                <button onclick="ShowRegistrationForm()" id="ShowRegistrationBtn">Registration</button>
+            </div>
+            <div id="LoginFrom">
+                <form action="{% url 'signin' %}" method="POST">
+                    {% csrf_token %}
+                    <div class="center">
+                        <input type="text" id="username" class="input-text" name="username"
+                            placeholder="Enter your Username" required>
 
-    <label for="">Email Address</label>
-    <input type="text" id="email" name="email" placeholder="Enter your Email Address" required>
-    <br>
+                        <input type="text" id="pass1" class="mt-10 input-text" name="pass1"
+                            placeholder="Enter your password" required>
+                    </div>
 
-    <label for="">Password</label>
-    <input type="text" id="pass1" name="pass1" placeholder="Create a password" required>
-    <br>
+                    <div class="forgot-pass-remember-me mt-10">
+                        <div class="forgot-pass">
+                            <a id="ForgotPassword" href="JavaScript:void(0);" onclick="ShowForgotPasswordForm()">Forgot
+                                Password?</a>
+                        </div>
+                        <div class="remember-me">
+                            <input id="rememberMe" type="checkbox">
+                            <label for="rememberMe">Remember Me</label>
+                        </div>
+                    </div>
 
-    <label for=""> Comfirm your password</label>
-    <input type="text" id="pass2" name="pass2" placeholder="Confirm Your Password" required>
-    <br>
+                    <div class="center mt-20">
+                        <input onclick="return ValidateLoginForm();" class="Submit-Btn" type="submit" value="Login"
+                            id="LoginBtn">
+                    </div>
+                </form>
+                <p class="center mt-20 dont-have-account">
+                    Don't have an account?
+                    <a href="JavaScript:void(0);" onclick="ShowRegistrationForm()">Registration now</a>
+                </p>
+            </div>
+            <div id="RegistrationFrom">
+                <form action="/signup" method="POST" class="signup_main">
+                    {% csrf_token %}
+                    <div class="center">
 
-    <button type="submit">Sign Up</button>
+                        <input type="text" id="username" class="input-text" name="username"
+                            placeholder="Create a Username" required>
 
-</form>
 
+
+                        <input type="text" id="fname" class="input-text" name="fname"
+                            placeholder="Enter your First Name" required>
+
+
+
+                        <input type="text" id="lname" class="input-text" name="lname" placeholder="Enter your Last Name"
+                            required>
+
+
+
+                        <input type="text" id="email" class="input-text mt-10" name="email"
+                            placeholder="Enter your Email Address" required>
+
+
+
+                        <input type="text" id="pass1" class="mt-10 input-text" name="pass1"
+                            placeholder="Create a password" required>
+
+
+
+                        <input type="text" id="pass2" class="mt-10 input-text" name="pass2"
+                            placeholder="Confirm Your Password" required>
+
+                    </div>
+                    <div class="center mt-20">
+                        <input onclick="return ValidateRegistrationForm();" class="Submit-Btn" type="submit"
+                            value="Registration" id="RegistrationitBtn">
+                    </div>
+
+                </form>
+                <p class="center mt-20 already-have-account">
+                    Already have an account?
+                    <a href="#" onclick="ShowLoginForm()">Login now</a>
+                </p>
+            </div>
+            <div id="ForgotPasswordForm">
+                <form action="">
+                    <div class="center mt-20">
+                        <input class="input-text " type="email" id="forgotPassEmail" placeholder="Email Address">
+                    </div>
+                    <div class="center mt-20">
+                        <input onclick="return ValidateForgotPasswordForm();" class="Submit-Btn" type="submit"
+                            value="Reset Password" id="PasswordResetBtn">
+                    </div>
+                </form>
+                <p class="center mt-20 already-have-account">
+                    Back to the
+                    <a href="JavaScript:void(0);" onclick="ShowLoginForm()">Login page</a> | <a
+                        href="JavaScript:void(0);" onclick="ShowRegistrationForm()">Registration page</a>
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="{% static 'js\accounts\signup\main.js' %}" type="text/javascript"></script>
+    <script src="{% static 'js\accounts\signup\validation.js' %}" type="text/javascript"></script>
+</body>
 
 {% endblock %}
