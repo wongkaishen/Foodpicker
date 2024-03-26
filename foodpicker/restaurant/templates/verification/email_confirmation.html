@@ -1,0 +1,12 @@
+{% autoescape off %}
+
+Welcome To FoodPicker
+
+Hello {{name}}!
+
+Please confirm your email by clicking on th following link.
+
+Confirmation Link: http://{{domain}}{% url 'activate' uidb64=uid token=token %}
+
+
+{% endautoescape %}

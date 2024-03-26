@@ -1,31 +1,3 @@
-function ShowLoginForm() {
-	debugger;
-	SetTitle("Registration");
-
-	ShowHideForm("RegistrationFrom", "Show");
-	ShowHideForm("LoginFrom", "Hide");
-	ShowHideForm("ForgotPasswordForm", "Hide");
-
-	ActiveInactiveBtn("ShowLoginBtn", "Inactive");
-	ActiveInactiveBtn("ShowRegistrationBtn", "Active");
-
-	ShowHideFromSwitchBtn("Show");
-};
-
-function ShowRegistrationForm() {
-
-	SetTitle("Login");
-
-	ShowHideForm("LoginFrom", "Show");
-	ShowHideForm("RegistrationFrom", "Hide");
-	ShowHideForm("ForgotPasswordForm", "Hide");
-
-	ActiveInactiveBtn("ShowLoginBtn", "Active");
-	ActiveInactiveBtn("ShowRegistrationBtn", "Inactive");
-
-	ShowHideFromSwitchBtn("Show");
-};
-
 function ShowForgotPasswordForm() {
 
 	SetTitle("Forgot Password");
@@ -75,6 +47,6 @@ function ShowHideFromSwitchBtn(ShowOrHide) {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-	ShowRegistrationForm();
+	ShowForgotPasswordForm();
 });
 // end

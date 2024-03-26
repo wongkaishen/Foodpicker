@@ -15,9 +15,7 @@
           <a href="{% url 'res.home' %}" class="nav__link">Home</a>
         </li>
 
-        <li class="nav__item">
-          <a href="{% url 'res.about' %}" class="nav__link">About Us</a>
-        </li>
+
 
         <li class="nav__item">
           <a href="{% url 'res.res' %}" class="nav__link">Restaurant</a>
@@ -31,12 +29,15 @@
           <a href="{% url 'res.contact' %}" class="nav__link">Contact</a>
         </li>
 
+        <li class="nav__item">
+          <a href="{% url 'res.about' %}" class="nav__link">About Us</a>
+        </li>
         <li class="dropdown">
           <button class="dropbtn">More</button>
           <div class="dropdown-content">
             <a href="{% url 'res.form' %}">Form</a>
-            <a href="#">Link 2</a>
-            <a href="#">Link 3</a>
+            <a href="#">Coming Soon</a>
+            <a href="#">Coming Soon</a>
           </div>
         </li>
       </ul>
@@ -105,7 +106,7 @@
       <p class="login__signup">
         You do not have an account? <a href="{% url 'signup' %}">Sign up</a>
       </p>
-      <a href="#" class="login__forgot">Forgot password?</a>
+      <a href="{% url 'reset_password' %}" class="login__forgot">Forgot password?</a>
 
 
       <button type="submit" class="login__button">Log In</button>
@@ -116,3 +117,7 @@
 
 
 <script src="{% static 'js\main.js' %}"></script>
+
+{% block content %}
+
+{% endblock %}

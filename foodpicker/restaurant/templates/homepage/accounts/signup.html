@@ -16,43 +16,12 @@
     <div class="container">
 
         <div id="LoginAndRegistrationForm">
-            <h1 id="formTitle">Login</h1>
+            <h1 id="formTitle">Register</h1>
             <div id="formSwitchBtn">
-                <button onclick="ShowLoginForm()" id="ShowLoginBtn" class="active">Login</button>
-                <button onclick="ShowRegistrationForm()" id="ShowRegistrationBtn">Registration</button>
+                <button onclick="ShowRegistrationForm()" id="ShowRegistrationBtn" class="active">Registration</button>
+                <button onclick="ShowLoginForm()" id="ShowLoginBtn">Login</button>
             </div>
-            <div id="LoginFrom">
-                <form action="{% url 'signin' %}" method="POST">
-                    {% csrf_token %}
-                    <div class="center">
-                        <input type="text" id="username" class="input-text" name="username"
-                            placeholder="Enter your Username" required>
 
-                        <input type="text" id="pass1" class="mt-10 input-text" name="pass1"
-                            placeholder="Enter your password" required>
-                    </div>
-
-                    <div class="forgot-pass-remember-me mt-10">
-                        <div class="forgot-pass">
-                            <a id="ForgotPassword" href="JavaScript:void(0);" onclick="ShowForgotPasswordForm()">Forgot
-                                Password?</a>
-                        </div>
-                        <div class="remember-me">
-                            <input id="rememberMe" type="checkbox">
-                            <label for="rememberMe">Remember Me</label>
-                        </div>
-                    </div>
-
-                    <div class="center mt-20">
-                        <input onclick="return ValidateLoginForm();" class="Submit-Btn" type="submit" value="Login"
-                            id="LoginBtn">
-                    </div>
-                </form>
-                <p class="center mt-20 dont-have-account">
-                    Don't have an account?
-                    <a href="JavaScript:void(0);" onclick="ShowRegistrationForm()">Registration now</a>
-                </p>
-            </div>
             <div id="RegistrationFrom">
                 <form action="/signup" method="POST" class="signup_main">
                     {% csrf_token %}
@@ -98,6 +67,34 @@
                     <a href="#" onclick="ShowLoginForm()">Login now</a>
                 </p>
             </div>
+            <div id="LoginFrom">
+                <form action="{% url 'signin' %}" method="POST">
+                    {% csrf_token %}
+                    <div class="center">
+                        <input type="text" id="username" class="input-text" name="username"
+                            placeholder="Enter your Username" required>
+
+                        <input type="text" id="pass1" class="mt-10 input-text" name="pass1"
+                            placeholder="Enter your password" required>
+                    </div>
+
+                    <div class="forgot-pass-remember-me mt-10">
+                        <div class="forgot-pass">
+                            <a id="ForgotPassword" href="JavaScript:void(0);" onclick="ShowForgotPasswordForm()">Forgot
+                                Password?</a>
+                        </div>
+                    </div>
+
+                    <div class="center mt-20">
+                        <input onclick="return ValidateLoginForm();" class="Submit-Btn" type="submit" value="Login"
+                            id="LoginBtn">
+                    </div>
+                </form>
+                <p class="center mt-20 dont-have-account">
+                    Don't have an account?
+                    <a href="JavaScript:void(0);" onclick="ShowRegistrationForm()">Registration now</a>
+                </p>
+            </div>
             <div id="ForgotPasswordForm">
                 <form action="">
                     <div class="center mt-20">
@@ -120,6 +117,9 @@
 
     <script src="{% static 'js\accounts\signup\main.js' %}" type="text/javascript"></script>
     <script src="{% static 'js\accounts\signup\validation.js' %}" type="text/javascript"></script>
+    <script>document.addEventListener("DOMContentLoaded", function () {
+            ShowRegistrationForm();
+        });</script>
 </body>
 
 {% endblock %}

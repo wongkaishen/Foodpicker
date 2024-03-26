@@ -7,10 +7,10 @@
 
 {% for message in messages %}
 <div class="aleat alert-{{message.tags}} alert-dismissible fade show" role="alert">
-<strong>Messages:</strong> {{message}}
-<button type="button" class="button" data-dismiss="alert" aria-label="Close">
-<span aria-hidden="true">&times;</span>
-</button>
+    <strong>Messages:</strong> {{message}}
+    <button type="button" class="button" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
 </div>
 {% endfor %}
 

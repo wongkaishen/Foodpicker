@@ -1,0 +1,40 @@
+
+Popular Cuisines & Dishes category
+
+    American
+    Asian
+    Beverages
+    Breakfast & Brunch
+    Burgers
+    Cakes
+    Cakes and pastries
+    Chinese
+    Desserts
+    Dinner Meals
+    Halal in KL
+    Healthy Food
+    Indian
+    Indonesian
+    Italian
+    Japanese
+    Korean
+    Malaysian food
+    Mediterra-nean
+    Mexican
+    Middle Eastern
+    Pizza
+    Rice
+    Sandwiches
+    Seafood
+    Sushi
+    Thai
+    Vegetarian
+    Vietnamese
+    Western
+
+
+Popular Chains
+
+McDonald's    KFC   |   Subway   |   Pizza Hut   |   Nando's   |   PappaRich   |   Sushi King   |   OldTown
+Boat Noodle   |   Marrybrown   |   Kenny Rogers Roasters   |   Chili's Grill & Bar   |   Gong Cha   |   Din Tai Fung   |   Madam Kwan   |   Ayam Penyet Best
+Oiso Korean Tradisional Cuisine & Cafe   |  
