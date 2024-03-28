@@ -1,4 +1,4 @@
-function ShowLoginForm() {
+function ShowRegistrationForm() {
 	debugger;
 	SetTitle("Registration");
 
@@ -12,7 +12,7 @@ function ShowLoginForm() {
 	ShowHideFromSwitchBtn("Show");
 };
 
-function ShowRegistrationForm() {
+function ShowLoginForm() {
 
 	SetTitle("Login");
 
@@ -77,4 +77,5 @@ function ShowHideFromSwitchBtn(ShowOrHide) {
 document.addEventListener("DOMContentLoaded", function () {
 	ShowRegistrationForm();
 });
+
 // end

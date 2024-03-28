@@ -140,6 +140,8 @@ img {
   width: 100%;
   background-color: var(--body-color);
   box-shadow: 0 2px 16px hsla(230, 75%, 32%, .15);
+  position: relative;
+  z-index: 2;
 }
 
 .nav {
@@ -305,6 +307,10 @@ img {
   font-weight: var(--font-semi-bold);
   transition: background-color 0.4s;
   /* Added transition for background-color */
+  left: 50%;
+  /* Set initial position to the center */
+  transform: translateX(-50%);
+  /* Adjust horizontally to center */
 }
 
 
@@ -489,5 +495,3 @@ img {
     margin-inline: auto;
   }
 }
-
-
