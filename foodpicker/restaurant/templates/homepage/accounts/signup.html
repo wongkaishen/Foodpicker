@@ -58,7 +58,7 @@
                     </div>
                     <div class="center mt-20">
                         <input onclick="return ValidateRegistrationForm();" class="Submit-Btn" type="submit"
-                            value="Registration" id="RegistrationitBtn">
+                            value="Register" id="RegistrationitBtn">
                     </div>
 
                 </form>
@@ -80,7 +80,7 @@
 
                     <div class="forgot-pass-remember-me mt-10">
                         <div class="forgot-pass">
-                            <a id="ForgotPassword" href="JavaScript:void(0);" onclick="ShowForgotPasswordForm()">Forgot
+                            <a id="ForgotPassword" href="{% url 'reset_password' %}">Forgot
                                 Password?</a>
                         </div>
                     </div>

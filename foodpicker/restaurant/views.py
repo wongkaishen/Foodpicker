@@ -9,6 +9,9 @@ from django.template.loader import render_to_string
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from .tokens import generate_token
+from django.urls import reverse_lazy
+from django.contrib.auth.views import PasswordChangeView
+
 
 # Create your views here.
 
@@ -85,7 +88,7 @@ def signup(request):
                 "name": myuser.first_name,
                 "domain": current_site.domain,
                 "uid": urlsafe_base64_encode(force_bytes(myuser.pk)),
-                "token": generate_token().make_token(myuser)
+                "token": generate_token().make_token(myuser),
             },
         )
         email = EmailMessage(
@@ -173,8 +176,3 @@ def form(request):
 def contact(request):
     return render(request, "homepage/content/contact.html", {"title": "Contact"})
 
-
-def forgotpass(request):
-    return render(
-        request, "homepage/accounts/forgotpass.html", {"title": "Forgot Password"}
-    )

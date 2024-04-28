@@ -1,7 +1,7 @@
 from django import forms
 from .models import Restaurant
 from .models import Category
-from captcha.fields import CaptchaField
+
 
 class LoginForm(forms.Form):
     username = forms.CharField()
@@ -36,8 +36,6 @@ class CategoryForm(forms.ModelForm):
         return name
 
 
-class CaptchaForm(forms.Form):
-    captcha_field = CaptchaField()
 
 
 
