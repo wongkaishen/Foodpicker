@@ -1,17 +1,52 @@
 from django import forms
-from .models import Restaurant
-from .models import Category
-from captcha.fields import CaptchaField
+from .models import Restaurant, Category
+from django.core.validators import MinValueValidator, MaxValueValidator
+
 
 class LoginForm(forms.Form):
-    username = forms.CharField()
-    password = forms.CharField(widget=forms.PasswordInput)
-    remember_me = forms.BooleanField()
+    username = forms.CharField(
+        label="Username",
+        max_length=150,
+        widget=forms.TextInput(
+            attrs={"class": "form-control", "placeholder": "Username"}
+        ),
+    )
+    password = forms.CharField(
+        label="Password",
+        widget=forms.PasswordInput(
+            attrs={"class": "form-control", "placeholder": "Password"}
+        ),
+    )
+
 
 class RestaurantForm(forms.ModelForm):
     class Meta:
         model = Restaurant
         fields = "__all__"
+        widgets = {
+            "name": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Restaurant Name"}
+            ),
+            "location": forms.Select(attrs={"class": "form-control"}),
+            "category": forms.CheckboxSelectMultiple(
+                attrs={"class": "form-check-input"}
+            ),
+            "price": forms.NumberInput(
+                attrs={"class": "form-control", "placeholder": "Price"}
+            ),
+            "time": forms.DateTimeInput(
+                attrs={"class": "form-control", "placeholder": "Working Hour"}
+            ),
+            "rate": forms.NumberInput(
+                attrs={"class": "form-control", "placeholder": "Rating"}
+            ),
+            "latitude": forms.NumberInput(
+                attrs={"class": "form-control", "placeholder": "Latitude"}
+            ),
+            "longitude": forms.NumberInput(
+                attrs={"class": "form-control", "placeholder": "Longitude"}
+            ),
+        }
 
     def clean(self):
         cleaned_data = super().clean()
@@ -28,16 +63,17 @@ class CategoryForm(forms.ModelForm):
     class Meta:
         model = Category
         fields = "__all__"
+        widgets = {
+            "name": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Category Name"}
+            ),
+        }
 
     def clean_name(self):
         name = self.cleaned_data.get("name")
         if Category.objects.filter(name=name).exists():
             raise forms.ValidationError("A Category with the same name already exists.")
         return name
-
-
-class CaptchaForm(forms.Form):
-    captcha_field = CaptchaField()
 
 
 

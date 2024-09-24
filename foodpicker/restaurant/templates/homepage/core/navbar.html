@@ -15,8 +15,6 @@
           <a href="{% url 'res.home' %}" class="nav__link">Home</a>
         </li>
 
-
-
         <li class="nav__item">
           <a href="{% url 'res.res' %}" class="nav__link">Restaurant</a>
         </li>
@@ -99,7 +97,8 @@
 
       <div>
         <label for="" class="login__label">Password</label>
-        <input type="password" placeholder="Enter your Password" name="pass1" class="login__input" required>
+        <input type="password" id="pass1" placeholder="Enter your Password" name="pass1" class="login__input" required>
+        <input type="checkbox" onclick="myFunction()">Show Password
       </div>
     </div>
     <div>
@@ -117,6 +116,16 @@
 
 
 <script src="{% static 'js\main.js' %}"></script>
+<script>
+function myFunction() {
+    var x = document.getElementById("pass1");
+    if (x.type === "password") {
+      x.type = "text";
+    } else {
+      x.type = "password";
+    }
+  }</script>
+
 
 {% block content %}
 

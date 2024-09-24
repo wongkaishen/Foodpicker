@@ -3,6 +3,32 @@
 {% load static %}
 
 {% block content %}
-this is res
+<form method="get" action="{% url 'restaurant_list' %}">
+    <label for="location">Location:</label>
+    <select name="location" id="location">
+        <option value="">All Locations</option>
+        {% for location in locations %}
+            <option value="{{ location.id }}" {% if request.GET.location == location.id|stringformat:"s" %}selected{% endif %}>{{ location.name }}</option>
+        {% endfor %}
+    </select>
+
+    <label for="category">Category:</label>
+    <select name="category" id="category">
+        <option value="">All Categories</option>
+        {% for category in categories %}
+            <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:"s" %}selected{% endif %}>{{ category.name }}</option>
+        {% endfor %}
+    </select>
+
+
+
+    <button type="submit">Filter</button>
+</form>
+
+<ul>
+    {% for restaurant in restaurants %}
+        <li><a href="{% url 'restaurant_detail' restaurant.id %}">{{ restaurant.name }}</a></li>
+    {% endfor %}
+</ul>
 
 {% endblock %}

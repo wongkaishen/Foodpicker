@@ -37,6 +37,8 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 
+
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -48,7 +50,11 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "restaurant",
     "captcha",
+    "django.contrib.gis"
+    
 ]
+
+
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -86,9 +92,13 @@ WSGI_APPLICATION = "base.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',  # Use the PostGIS engine
+        'NAME': 'foodpicker',
+        'USER': 'postgres',
+        'PASSWORD': 'wong',
+        'HOST': 'localhost',
+        'PORT': '5432',
+        }
 }
 
 

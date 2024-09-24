@@ -9,13 +9,17 @@ from django.template.loader import render_to_string
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from .tokens import generate_token
+from .models import Restaurant, Location, Category 
+from django.shortcuts import render, get_object_or_404
+
 
 # Create your views here.
 
 
 # Create your views here.
 def home(request):
-    return render(request, "homepage/content/home.html", {"title": "Home"})
+    context = {"title": "Home"}
+    return render(request, "homepage/content/home.html", context)
 
 
 def signup(request):
@@ -58,34 +62,15 @@ def signup(request):
             " Your Account has been successfully created. We have sent you a confirmation email, Please confirm your email in order to activate your account",
         )
 
-        subject = "Welcome to Foodpicker"
-        message = (
-            "Hello!"
-            + myuser.username
-            + "!! \n"
-            + "Welcome to Foodpicker!! \n Thanks you for visiting our website \n We have also sent you a confirmation email, Please confirm your email address in order to activate your account. \n Thank you"
-        )
-        from_email = settings.EMAIL_HOST_USER
-        to_list = [myuser.email]
-        send_mail(
-            subject,
-            message,
-            from_email,
-            to_list,
-            fail_silently=True,
-        )
-
-        # confirmation email
-
         current_site = get_current_site(request)
         email_subject = "Confirm Your Email @ Foodpicker - Login"
         message2 = render_to_string(
             "verification\email_confirmation.html",
             {
-                "name": myuser.first_name,
+                "name": myuser.username,
                 "domain": current_site.domain,
                 "uid": urlsafe_base64_encode(force_bytes(myuser.pk)),
-                "token": generate_token().make_token(myuser)
+                "token": generate_token().make_token(myuser),
             },
         )
         email = EmailMessage(
@@ -99,19 +84,15 @@ def signup(request):
 
         return redirect("signin")
 
-    return render(request, "homepage/accounts/signup.html", {"title": "Sign Up"})
+    context = {"title": "Sign Up"}
 
-
-from django.shortcuts import redirect, render
-from django.contrib.auth import authenticate, login
-from django.contrib import messages
+    return render(request, "homepage/accounts/signup.html", context)
 
 
 def signin(request):
     if request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("pass1")
-
         user = authenticate(request, username=username, password=password)
 
         if user is not None:
@@ -150,31 +131,66 @@ def activate(request, uidb64, token):
         return render(request, "verification\activation_failed.html")
 
 
-def restaurant(request):
-    return render(request, "homepage/content/res.html", {"title": "Restaurant"})
+def restaurant_detail(request, id): # this is for the restaurant detail when click into it
+    restaurant = get_object_or_404(Restaurant, id=id)
+    context = {
+        "restaurant": restaurant,
+        "title": restaurant.name,
+    }
+    return render(request, "homepage/content/restaurant_detail.html", context)
+
+
+def restaurant_list(request): # used to show the restaurnt id or sort out the restaurant using id's
+    location_id = request.GET.get("location")
+    category_id = request.GET.get("category")
+
+    restaurants = Restaurant.objects.all()
+
+    if location_id:
+        restaurants = restaurants.filter(location_id=location_id)
+
+    if category_id:
+        restaurants = restaurants.filter(category__id=category_id)
+
+    locations = Location.objects.all()
+    categories = Category.objects.all()
+
+    context = {
+        "restaurants": restaurants,
+        "locations": locations,
+        "categories": categories,
+        "title": "Restaurant",
+    }
+    return render(request, "homepage/content/res.html", context)
+
+
 
 
 def about(request):
-    return render(request, "homepage/content/about.html", {"title": "About"})
+    context = {"title": "About"}
+    return render(request, "homepage/content/about.html", context)
 
 
 def search(request):
-    return render(request, "homepage/content/search.html", {"title": "Search"})
+    context = {"title": "Search"}
+    return render(request, "homepage/content/search.html", context)
 
 
 def map(request):
-    return render(request, "homepage/content/map.html", {"title": "Map"})
+    context = {"title": "Map"}
+    return render(request, "homepage/content/map.html", context)
 
 
 def form(request):
-    return render(request, "homepage/content/form.html", {"title": "Restaurant Form"})
+    context = {"title": "Restaurant Form"}
+    return render(request, "homepage/content/form.html", context)
 
 
 def contact(request):
-    return render(request, "homepage/content/contact.html", {"title": "Contact"})
+    context = {"title": "Contact"}
+    return render(request, "homepage/content/contact.html", context)
 
 
 def forgotpass(request):
-    return render(
-        request, "homepage/accounts/forgotpass.html", {"title": "Forgot Password"}
-    )
+    context = {"title": "Forgot Password"}
+    return render(request, "homepage/accounts/forgotpass.html", context)

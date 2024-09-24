@@ -27,7 +27,8 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("restaurant.urls")),
     path(
-        "reset_password/", auth_views.PasswordResetView.as_view(), name="reset_password"
+        "reset_password/", auth_views.PasswordResetView.as_view(), 
+        name="reset_password"
     ),
     path(
         "reset_password_sent/",
@@ -42,6 +43,6 @@ urlpatterns = [
     path(
         "reset_password_complete/",
         auth_views.PasswordResetCompleteView.as_view(),
-        name="password_reset_conplete",
+        name="password_reset_complete",
     ),
 ]
