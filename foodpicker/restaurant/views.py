@@ -1,15 +1,16 @@
+import json
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.shortcuts import redirect, render
 from django.contrib.auth.models import User
 from base import settings
-from django.core.mail import send_mail, EmailMessage
+from django.core.mail import EmailMessage
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from .tokens import generate_token
-from .models import Restaurant, Location, Category 
+from .models import Restaurant
 from django.shortcuts import render, get_object_or_404
 
 
@@ -131,7 +132,20 @@ def activate(request, uidb64, token):
         return render(request, "verification\activation_failed.html")
 
 
-def restaurant_detail(request, id): # this is for the restaurant detail when click into it
+def restaurant_list(
+    request,
+):  # used to show the restaurnt id or sort out the restaurant using id's
+    restaurants = Restaurant.objects.all()
+    context = {
+        "restaurants": restaurants,
+        "title": "Restaurant",
+    }
+    return render(request, "homepage/content/res.html", context)
+
+
+def restaurant_detail(
+    request, id
+):  # this is for the restaurant detail when click into it
     restaurant = get_object_or_404(Restaurant, id=id)
     context = {
         "restaurant": restaurant,
@@ -139,30 +153,15 @@ def restaurant_detail(request, id): # this is for the restaurant detail when cli
     }
     return render(request, "homepage/content/restaurant_detail.html", context)
 
-
-def restaurant_list(request): # used to show the restaurnt id or sort out the restaurant using id's
-    location_id = request.GET.get("location")
-    category_id = request.GET.get("category")
-
+def all_restaurants_map(request):
+    # Get all restaurants from the database
     restaurants = Restaurant.objects.all()
 
-    if location_id:
-        restaurants = restaurants.filter(location_id=location_id)
+    # Convert restaurant queryset to a JSON-friendly format
+    restaurants_json = json.dumps(list(restaurants.values('name', 'description', 'latitude', 'longitude')))
 
-    if category_id:
-        restaurants = restaurants.filter(category__id=category_id)
-
-    locations = Location.objects.all()
-    categories = Category.objects.all()
-
-    context = {
-        "restaurants": restaurants,
-        "locations": locations,
-        "categories": categories,
-        "title": "Restaurant",
-    }
-    return render(request, "homepage/content/res.html", context)
-
+    # Render the template with the data
+    return render(request, 'homepage/content/map.html', {'restaurants_json': restaurants_json})
 
 
 
