@@ -190,12 +190,12 @@ def location_view(request):
         form = RestaurantForm(request.POST)
         if form.is_valid():
             latitude = form.cleaned_data["latitude"]
-            longitude = form.cleaned_data["longitude"]
+            longtitude = form.cleaned_data["longtitude"]
             # Do something with the valid data (like saving it or processing)
             return render(
                 request,
-                "form_success.html",
-                {"latitude": latitude, "longitude": longitude},
+                "homepage/content/form_success.html",
+                {"latitude": latitude, "longtitude": longtitude},
             )
     else:
         form = RestaurantForm()

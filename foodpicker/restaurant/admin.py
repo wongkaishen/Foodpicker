@@ -3,7 +3,7 @@ from .models import Restaurant
 
 
 class RestaurantAdmin(admin.ModelAdmin):  
-    list_display = ("name",  "price", "time", "latitude","longitude","description")
+    list_display = ("name",  "price", "time", "latitude","longtitude","description")
 
 
 admin.site.register(Restaurant, RestaurantAdmin)
