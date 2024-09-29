@@ -170,33 +170,12 @@ def all_restaurants_map(request):
     )
 
 
-def about(request):
-    context = {"title": "About"}
-    return render(request, "homepage/content/about.html", context)
-
-
-def search(request):
-    context = {"title": "Search"}
-    return render(request, "homepage/content/search.html", context)
-
-
-def map(request):
-    context = {"title": "Map"}
-    return render(request, "homepage/content/map.html", context)
-    
-
 def location_view(request):
     if request.method == "POST":
         form = RestaurantForm(request.POST)
         if form.is_valid():
-            latitude = form.cleaned_data["latitude"]
-            longitude = form.cleaned_data["longitude"]
-            # Do something with the valid data (like saving it or processing)
-            return render(
-                request,
-                "homepage/content/form_success.html",
-                {"latitude": latitude, "longitude": longitude},
-            )
+            form.save()
+            return render(request,"homepage/content/form_success.html",)
     else:
         form = RestaurantForm()
 
@@ -211,3 +190,18 @@ def contact(request):
 def forgotpass(request):
     context = {"title": "Forgot Password"}
     return render(request, "homepage/accounts/forgotpass.html", context)
+
+
+def about(request):
+    context = {"title": "About"}
+    return render(request, "homepage/content/about.html", context)
+
+
+def search(request):
+    context = {"title": "Search"}
+    return render(request, "homepage/content/search.html", context)
+
+
+def map(request):
+    context = {"title": "Map"}
+    return render(request, "homepage/content/map.html", context)
