@@ -12,6 +12,7 @@ from django.utils.encoding import force_bytes, force_str
 from .tokens import generate_token
 from .models import Restaurant
 from django.shortcuts import render, get_object_or_404
+from .forms import RestaurantForm
 
 
 # Create your views here.
@@ -153,16 +154,20 @@ def restaurant_detail(
     }
     return render(request, "homepage/content/restaurant_detail.html", context)
 
+
 def all_restaurants_map(request):
     # Get all restaurants from the database
     restaurants = Restaurant.objects.all()
 
     # Convert restaurant queryset to a JSON-friendly format
-    restaurants_json = json.dumps(list(restaurants.values('name', 'description', 'latitude', 'longitude')))
+    restaurants_json = json.dumps(
+        list(restaurants.values("name", "description", "latitude", "longitude"))
+    )
 
     # Render the template with the data
-    return render(request, 'homepage/content/map.html', {'restaurants_json': restaurants_json})
-
+    return render(
+        request, "homepage/content/map.html", {"restaurants_json": restaurants_json}
+    )
 
 
 def about(request):
@@ -178,11 +183,24 @@ def search(request):
 def map(request):
     context = {"title": "Map"}
     return render(request, "homepage/content/map.html", context)
+    
 
+def location_view(request):
+    if request.method == "POST":
+        form = RestaurantForm(request.POST)
+        if form.is_valid():
+            latitude = form.cleaned_data["latitude"]
+            longitude = form.cleaned_data["longitude"]
+            # Do something with the valid data (like saving it or processing)
+            return render(
+                request,
+                "form_success.html",
+                {"latitude": latitude, "longitude": longitude},
+            )
+    else:
+        form = RestaurantForm()
 
-def form(request):
-    context = {"title": "Restaurant Form"}
-    return render(request, "homepage/content/form.html", context)
+    return render(request, "homepage/content/form.html", {"form": form})
 
 
 def contact(request):

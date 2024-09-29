@@ -14,6 +14,6 @@ urlpatterns = [
     path('signout',views.signout,name="signout"),
     path('activate/<str:uidb64>/<str:token>/', views.activate, name='activate'),
     path('forgotpass',views.forgotpass,name="forgotpass"),
-    path('form',views.form,name="res.form"),
+    path('form',views.location_view,name="res.form"),
     
 ]
