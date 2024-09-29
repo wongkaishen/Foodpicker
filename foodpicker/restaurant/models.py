@@ -9,7 +9,7 @@ class Restaurant(models.Model):
     price = models.DecimalField(max_digits=4, decimal_places=2)
     time = models.TimeField("Working Hour")
     latitude = models.FloatField(null=False, blank=False)
-    longtitude = models.FloatField(null=False, blank=False)
+    longitude = models.FloatField(null=False, blank=False)
 
     def __str__(self):
         return self.name
