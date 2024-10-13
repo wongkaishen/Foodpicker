@@ -27,8 +27,8 @@ class RestaurantForm(forms.Form):
         widget=forms.TextInput(attrs={"placeholder": "Restaurant Name"}),
         required=True,
     )
-    longtitude = forms.FloatField(
-        label="Please Insert the Longtitude",
+    longitude = forms.FloatField(
+        label="Please Insert the longitude",
         min_value=-90,
         max_value=90,
         required=True,
@@ -48,8 +48,8 @@ class RestaurantForm(forms.Form):
             raise ValidationError("Enter a latitude value between -180 and 180")
         return latitude
 
-    def clean_longtitude(self):
-        longtitude = self.cleaned_data.get("longtitude")
-        if longtitude < -90.0 or longtitude > 90.0:
-            raise ValidationError("Enter a longtitude value between -90 and 90")
-        return longtitude
+    def clean_longitude(self):
+        longitude = self.cleaned_data.get("longitude")
+        if longitude < -90.0 or longitude > 90.0:
+            raise ValidationError("Enter a longitude value between -90 and 90")
+        return longitude

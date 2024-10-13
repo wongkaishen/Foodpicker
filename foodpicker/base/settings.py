@@ -120,6 +120,8 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+GDAL_LIBRARY_PATH = r'C:\OSGeo4W\bin\gdal309.dll'
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
