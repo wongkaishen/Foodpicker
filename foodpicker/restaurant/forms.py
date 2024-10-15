@@ -56,28 +56,3 @@ class RestaurantForm(forms.Form):
     
 
         
-class LocationForm(forms.Form):
-    latitude = forms.FloatField(
-        label="Enter your current latitude",
-        min_value=-90,
-        max_value=90,
-        required=True
-    )
-    longitude = forms.FloatField(
-        label="Enter your current longitude",
-        min_value=-180,
-        max_value=180,
-        required=True
-    )
-    DISTANCE_CHOICES = [
-        (0.5, "500 meters"),
-        (1, "1 kilometer"),
-        (5, "5 kilometers"),
-        (10, "10 kilometers"),
-        (20, "20 kilometers"),
-    ]
-    distance = forms.ChoiceField(
-        label="Select distance",
-        choices=DISTANCE_CHOICES,
-        required=True,
-    )
