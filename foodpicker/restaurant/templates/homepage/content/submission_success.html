@@ -1,0 +1,9 @@
+{% extends 'homepage/content/main.html' %}
+
+
+{% block content %}
+<h1>Success!</h1>
+<p>Your restaurant submission has been received and is awaiting admin approval.</p>
+<a href="{% url 'res.form' %}">Submit another restaurant</a>
+
+{% endblock %}

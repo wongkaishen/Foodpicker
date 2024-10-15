@@ -10,7 +10,7 @@ from django.template.loader import render_to_string
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from .tokens import generate_token
-from .models import Restaurant
+from .models import ApprovedRestaurant , RestaurantSubmission
 from django.shortcuts import render, get_object_or_404
 from .forms import RestaurantForm
 
@@ -136,7 +136,7 @@ def activate(request, uidb64, token):
 def restaurant_list(
     request,
 ):  # used to show the restaurnt id or sort out the restaurant using id's
-    restaurants = Restaurant.objects.all()
+    restaurants = ApprovedRestaurant.objects.all()
     context = {
         "restaurants": restaurants,
         "title": "Restaurant",
@@ -147,7 +147,7 @@ def restaurant_list(
 def restaurant_detail(
     request, id
 ):  # this is for the restaurant detail when click into it
-    restaurant = get_object_or_404(Restaurant, id=id)
+    restaurant = get_object_or_404(ApprovedRestaurant, id=id)
     context = {
         "restaurant": restaurant,
         "title": restaurant.name,
@@ -157,7 +157,7 @@ def restaurant_detail(
 
 def all_restaurants_map(request):
     # Get all restaurants from the database
-    restaurants = Restaurant.objects.all()
+    restaurants = ApprovedRestaurant.objects.all()
 
     # Convert restaurant queryset to a JSON-friendly format
     restaurants_json = json.dumps(
@@ -170,16 +170,53 @@ def all_restaurants_map(request):
     )
 
 
-def location_view(request):
+def Res_request(request):
     if request.method == "POST":
         form = RestaurantForm(request.POST)
         if form.is_valid():
             form.save()
-            return render(request,"homepage/content/form_success.html",)
+            return render(request,"homepage\content\submission_success.html",)
     else:
         form = RestaurantForm()
 
     return render(request, "homepage/content/form.html", {"form": form})
+
+def admin_verify_restaurants(request):
+    # Fetch unverified restaurant submissions
+    submissions = RestaurantSubmission.objects.filter(is_verified=False)
+    
+    if request.method == 'POST':
+        for submission in submissions:
+            if f'approve_{submission.id}' in request.POST:
+                # Move to approved restaurant model
+                ApprovedRestaurant.objects.create(
+                    name=submission.name,
+                    description=submission.description,
+                    price=submission.price,
+                    time=submission.time,
+                    longitude=submission.longitude,
+                    latitude=submission.latitude,
+                )
+                submission.is_verified = True  # Mark as verified
+                submission.save()  # Save submission status
+
+            elif f'disapprove_{submission.id}' in request.POST:
+                submission.is_verified = True  # Mark as verified (optional)
+                submission.save()  # Save submission status
+
+        return redirect('admin_verify')  # Redirect back to this page
+    
+    context = {
+        'submissions': submissions,
+        'no_submissions': not submissions.exists(),  # Check if there are no submissions
+    }
+
+    return render(request, 'homepage/content/res_verify.html', context)
+
+def submission_success_view(request):
+    return render(request, 'homepage\content\submission_success.html')  # Create this template
+
+
 
 
 def contact(request):

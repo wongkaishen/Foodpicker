@@ -1,0 +1,48 @@
+{% extends 'homepage/content/main.html' %}
+
+{% block content %}
+<div class="form-container">
+    <h1>Admin Restaurant Verification</h1>
+
+    {% if no_submissions %}
+    <p>No restaurants are waiting for verification.</p>
+    {% else %}
+    <div class="submission-list">
+        {% for submission in submissions %}
+        <div class="submission-item">
+            <div class="submission-details">
+                <label>Name:</label>
+                <p>{{ submission.name }}</p>
+                
+                <label>Description:</label>
+                <p>{{ submission.description }}</p>
+                
+                <label>Latitude:</label>
+                <p>{{ submission.latitude }}</p>
+                
+                <label>Longitude:</label>
+                <p>{{ submission.longitude }}</p>
+                
+                <label>Price:</label>
+                <p>{{ submission.price }}</p>
+                
+                <label>Time:</label>
+                <p>{{ submission.time }}</p>
+                
+                <label>Submitted At:</label>
+                <p>{{ submission.submitted_at|date:"F j, Y, g:i a" }}</p>
+            </div>
+            
+            <div class="submission-actions">
+                <form method="POST">
+                    {% csrf_token %}
+                    <button type="submit" name="approve_{{ submission.id }}" class="approve-btn">Approve</button>
+                    <button type="submit" name="disapprove_{{ submission.id }}" class="disapprove-btn">Disapprove</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

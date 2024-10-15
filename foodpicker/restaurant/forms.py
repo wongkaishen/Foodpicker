@@ -1,6 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import Restaurant
+from .models import RestaurantSubmission
 
 
 class LoginForm(forms.Form):
@@ -23,5 +23,5 @@ class LoginForm(forms.Form):
 
 class RestaurantForm(forms.ModelForm):
     class Meta:
-        model = Restaurant
+        model = RestaurantSubmission
         fields = ['name', 'description', 'price', 'time', 'longitude', 'latitude']

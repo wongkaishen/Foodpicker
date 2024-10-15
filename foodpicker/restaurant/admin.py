@@ -1,10 +1,12 @@
 from django.contrib import admin
-from .models import Restaurant
+from .models import RestaurantSubmission, ApprovedRestaurant
 
 
-class RestaurantAdmin(admin.ModelAdmin):  
-    list_display = ("name",  "price", "time", "latitude","longitude","description")
+class RestaurantSubmissionAdmin(admin.ModelAdmin):  
+    list_display = ("name",  "price", "time", "latitude","longitude","description","submitted_at","'is_verified'")
 
 
-admin.site.register(Restaurant, RestaurantAdmin)
+
+admin.site.register(RestaurantSubmission)
+admin.site.register(ApprovedRestaurant)
 

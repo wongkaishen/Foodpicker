@@ -1,0 +1,97 @@
+/* Container for the entire form */
+.form-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Header */
+h1 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #333;
+}
+
+/* Submission list and individual items */
+.submission-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.submission-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+}
+
+.submission-details {
+    flex: 1;
+}
+
+.submission-details label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.submission-details p {
+    margin-bottom: 10px;
+    color: #555;
+}
+
+/* Action buttons */
+.submission-actions {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 10px;
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+.approve-btn {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.disapprove-btn {
+    background-color: #f44336;
+    color: white;
+}
+
+button:hover {
+    opacity: 0.9;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .submission-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .submission-actions {
+        width: 100%;
+        flex-direction: row;
+        justify-content: space-between;
+    }
+}

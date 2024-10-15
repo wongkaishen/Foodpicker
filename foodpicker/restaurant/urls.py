@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 
+
 urlpatterns = [
     path('',views.home,name="res.home"),
     path('restaurant/',views.restaurant_list,name="res.res"),
@@ -14,6 +15,9 @@ urlpatterns = [
     path('signout',views.signout,name="signout"),
     path('activate/<str:uidb64>/<str:token>/', views.activate, name='activate'),
     path('forgotpass',views.forgotpass,name="forgotpass"),
-    path('form',views.location_view,name="res.form"),
+    path('form',views.Res_request,name="res.form"),
+    path('verify/', views.admin_verify_restaurants, name='admin_verify'),
+    path('submission/success/', views.submission_success_view, name='submission_success'),
+    
     
 ]
