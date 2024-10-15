@@ -12,7 +12,13 @@ from django.utils.encoding import force_bytes, force_str
 from .tokens import generate_token
 from .models import Restaurant
 from django.shortcuts import render, get_object_or_404
-from .forms import RestaurantForm
+from .forms import RestaurantForm , LocationForm
+from django.contrib.gis.geos import Point
+from django.contrib.gis.db.models.functions import Distance
+from django.contrib.gis.geos import Point
+from django.contrib.gis.db.models.functions import Distance
+from django.contrib.gis.measure import D  # D is a shortcut for distance
+
 
 
 # Create your views here.
@@ -21,7 +27,33 @@ from .forms import RestaurantForm
 # Create your views here.
 def home(request):
     context = {"title": "Home"}
-    return render(request, "homepage/content/home.html", context)
+    return render(request,"homepage/content/home.html",context,)
+
+
+
+
+# views.py
+def calculate_distance(request):
+    form = LocationForm(request.POST or None)  # Use the correct form instance
+    restaurants = Restaurant.objects.all()
+
+    if request.method == "POST" and form.is_valid():
+        user_location = Point(
+            form.cleaned_data["longitude"], form.cleaned_data["latitude"], srid=4326
+        )
+        max_distance = float(form.cleaned_data["distance"])  # Get distance choice
+
+        # Filter restaurants within the selected distance
+        restaurants = restaurants.annotate(
+            distance=Distance(Point('longitude', 'latitude', srid=4326), user_location)
+        ).filter(distance__lte=D(km=max_distance)).order_by('distance')
+
+    return render(
+        request,
+        "homepage/content/home.html",  # Ensure this points to the correct template
+        {"form": form, "restaurants": restaurants}
+    )   
+
 
 
 def signup(request):
@@ -183,7 +215,7 @@ def search(request):
 def map(request):
     context = {"title": "Map"}
     return render(request, "homepage/content/map.html", context)
-    
+
 
 def location_view(request):
     if request.method == "POST":

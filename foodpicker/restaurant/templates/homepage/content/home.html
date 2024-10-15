@@ -3,6 +3,7 @@
 
 {% load static %}
 
+
 {% block content %}
 
 {% for message in messages %}
@@ -12,7 +13,85 @@
         <span aria-hidden="true">&times;</span>
     </button>
 </div>
+
+
+
+
 {% endfor %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find Restaurants Near You</title>
+    <!-- Include Leaflet.js and CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <style>
+        #map { height: 500px; }
+    </style>
+</head>
+<body>
+    <h1>Calculate Distances to Restaurants</h1>
+
+    <!-- Form to input user's current location and select distance -->
+    <form method="post">
+        {% csrf_token %}
+        
+        <!-- Render each form field explicitly -->
+        <div>
+            <label for="latitude">Enter your Latitude:</label>
+            {{ form.latitude }}
+        </div>
+        
+        <div>
+            <label for="longitude">Enter your Longitude:</label>
+            {{ form.longitude }}
+        </div>
+        
+        <div>
+            <label for="distance">Select Distance:</label>
+            {{ form.distance }}
+        </div>
+        
+        <button type="submit">Calculate Distance</button>
+    </form>
+    
+
+    <!-- Map to display restaurants -->
+    <div id="map"></div>
+
+    <!-- JavaScript to display the map and restaurants -->
+    <script>
+        var map = L.map('map').setView([{{ form.cleaned_data.latitude|default:0 }}, {{ form.cleaned_data.longitude|default:0 }}], 13);
+
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 18,
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Add markers for each restaurant
+        {% for restaurant in restaurants %}
+        L.marker([{{ restaurant.latitude }}, {{ restaurant.longitude }}])
+            .addTo(map)
+            .bindPopup("<b>{{ restaurant.name }}</b><br>{{ restaurant.distance.m|floatformat:2 }} meters away.");
+        {% endfor %}
+    </script>
+
+    <!-- Display restaurants in a list -->
+    {% if restaurants %}
+        <h2>Restaurants near you:</h2>
+        <ul>
+            {% for restaurant in restaurants %}
+                <li>{{ restaurant.name }} - {{ restaurant.distance.m|floatformat:2 }} meters away</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+</body>
+</html>
+
 
 
 

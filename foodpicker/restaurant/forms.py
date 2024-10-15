@@ -29,27 +29,55 @@ class RestaurantForm(forms.Form):
     )
     longitude = forms.FloatField(
         label="Please Insert the longitude",
-        min_value=-90,
-        max_value=90,
-        required=True,
-        help_text="Enter a longitude value between -90 and 90"
-    )
-    latitude = forms.FloatField(
-        label="Please Insert the Latitude",
         min_value=-180,
         max_value=180,
         required=True,
-        help_text="Enter a latitude value between -180 and 180"
+        help_text="Enter a longitude value between -180 and 180"
+    )
+    latitude = forms.FloatField(
+        label="Please Insert the Latitude",
+        min_value=-90,
+        max_value=90,
+        required=True,
+        help_text="Enter a latitude value between -90 and 90"
     )
 
     def clean_latitude(self):
         latitude = self.cleaned_data.get("latitude")
-        if latitude < -180.0 or latitude > 180.0:
-            raise ValidationError("Enter a latitude value between -180 and 180")
+        if latitude < -90.0 or latitude > 90.0:
+            raise ValidationError("Enter a latitude value between -90 and 90")
         return latitude
 
     def clean_longitude(self):
         longitude = self.cleaned_data.get("longitude")
-        if longitude < -90.0 or longitude > 90.0:
-            raise ValidationError("Enter a longitude value between -90 and 90")
+        if longitude < -180.0 or longitude > 180.0:
+            raise ValidationError("Enter a longitude value between -180 and 180")
         return longitude
+    
+
+        
+class LocationForm(forms.Form):
+    latitude = forms.FloatField(
+        label="Enter your current latitude",
+        min_value=-90,
+        max_value=90,
+        required=True
+    )
+    longitude = forms.FloatField(
+        label="Enter your current longitude",
+        min_value=-180,
+        max_value=180,
+        required=True
+    )
+    DISTANCE_CHOICES = [
+        (0.5, "500 meters"),
+        (1, "1 kilometer"),
+        (5, "5 kilometers"),
+        (10, "10 kilometers"),
+        (20, "20 kilometers"),
+    ]
+    distance = forms.ChoiceField(
+        label="Select distance",
+        choices=DISTANCE_CHOICES,
+        required=True,
+    )
