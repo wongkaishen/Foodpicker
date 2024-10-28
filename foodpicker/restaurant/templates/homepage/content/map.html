@@ -1,13 +1,58 @@
 {% extends 'homepage/content/main.html' %}
-
 {% load static %}
 
+
 {% block content %}
-    <div class="container">
-        <div class="row mt-4">
-            <div class="col-md-10 offset-md-1">
-                {{m}}
-            </div>
-        </div>
-    </div>
+
+<h1>All Restaurants Map</h1>
+
+<!-- Map container -->
+<div id="map" style="height: 500px; width: 100%;z-index: 1;" ></div>
+
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" /> 
+
+<script>
+  // Parse the restaurant data passed from Django
+  var restaurants = {{ restaurants_json|safe }};
+  
+  console.log(restaurants); // Debugging: Check if data is being passed correctly
+
+  // Initialize the map
+  var map = L.map('map').setView([0, 0], 2);  // Initial view set to the global level
+
+  // Add OpenStreetMap tiles
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  }).addTo(map);
+
+  // Check if restaurants array is not empty
+  if (restaurants.length > 0) {
+    var bounds = L.latLngBounds();  // Create bounds to fit all markers
+
+    // Loop through each restaurant and add markers
+    restaurants.forEach(function(restaurant) {
+      // Ensure latitude and longitude are valid
+      if (!isNaN(restaurant.latitude) && !isNaN(restaurant.longitude)) {
+        var marker = L.marker([restaurant.latitude, restaurant.longitude]).addTo(map);
+
+        // Add a popup with the restaurant name and description
+        marker.bindPopup('<b>' + restaurant.name + '</b><br>' + restaurant.description);
+
+        // Extend the map bounds to include this marker
+        bounds.extend([restaurant.latitude, restaurant.longitude]);
+      } else {
+        console.error('Invalid coordinates for restaurant:', restaurant.name);
+      }
+    });
+
+    // Adjust the map view to include all markers
+    map.fitBounds(bounds);
+  } else {
+    console.log("No restaurants available to display.");
+  }
+</script>
+
 {% endblock %}
+

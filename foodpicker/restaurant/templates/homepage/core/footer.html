@@ -1,17 +1,18 @@
 {% load static %}
+<link rel="stylesheet" href="{% static 'css/core/footer.css' %}">
+<div class="footer">
 
-<div class="container">
-    <footer class="py-3 my-4">
-        <ul class="nav justify-content-center border-bottom pb-3 mb-3">
-            <li class="nav-item"><a href="{% url 'res.home' %}" class="nav-link px-2 text-body-secondary">Home</a></li>
-            <li class="nav-item"><a href="{% url 'res.res' %}" class="nav-link px-2 text-body-secondary">Restaurant</a>
-            </li>
-            <li class="nav-item"><a href="{% url 'res.map' %}" class="nav-link px-2 text-body-secondary">Map</a></li>
-            <li class="nav-item"><a href="{% url 'res.contact' %}" class="nav-link px-2 text-body-secondary">Contact</a>
-            </li>
-            <li class="nav-item"><a href="{% url 'res.about' %}" class="nav-link px-2 text-body-secondary">About</a>
-            </li>
-        </ul>
-        <p class="text-center text-body-secondary">@ 2024 Foodpicker by Micheal Wong </p>
-    </footer>
+    <ul class="nav justify-content-center border-bottom ">
+        <li class="nav-item"><a href="{% url 'res.home' %}" class="nav-link px-2 ">Home</a></li>
+        <li class="nav-item"><a href="{% url 'res.res' %}" class="nav-link px-2 ">Restaurant</a>
+        </li>
+        <li class="nav-item"><a href="{% url 'res.map' %}" class="nav-link px-2 ">Map</a></li>
+        <li class="nav-item"><a href="{% url 'res.contact' %}" class="nav-link px-2 ">Contact</a>
+        </li>
+        <li class="nav-item"><a href="{% url 'res.about' %}" class="nav-link px-2">About</a>
+        </li>
+    </ul>
+
+    <p class="text-center ">@ 2024 Foodpicker by Micheal Wong </p>
+
 </div>

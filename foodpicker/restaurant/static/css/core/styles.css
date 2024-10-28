@@ -102,7 +102,6 @@ img {
   height: 100%;
   object-fit: cover;
   object-position: center;
-  z-index: -1;
 }
 
 .search,
@@ -140,6 +139,8 @@ img {
   width: 100%;
   background-color: var(--body-color);
   box-shadow: 0 2px 16px hsla(230, 75%, 32%, .15);
+  position: relative;
+  
 }
 
 .nav {
@@ -171,7 +172,7 @@ img {
   transition: color .4s;
 }
 
-:is(.nav__logo, .nav__search, .nav__login, .nav__toggle, .nav__link, .dropdown, .dropdown-content):hover {
+:is(.nav__logo, .nav__search, .nav__login, .nav__toggle, .nav__link, .dropdown):hover {
   color: var(--first-color);
 }
 
@@ -186,6 +187,7 @@ img {
     width: 100%;
     padding-block: 4.5rem 4rem;
     transition: top .4s;
+    z-index: 1;
   }
 }
 
@@ -287,24 +289,16 @@ img {
 
 /* The container <div> - needed to position the dropdown content */
 .dropdown {
-  position: block;
-  display: inline-block;
-  color: var(--title-color);
-  transition: color .4s;
+  position: relative;
+  z-index: 999; /* Make sure the dropdown has a high z-index */
 }
 
 /* Dropdown Content (Hidden by Default) */
 .dropdown-content {
   display: none;
   position: absolute;
-  background-color: #faf7f7;
-  min-width: 160px;
-  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
-  z-index: 1;
-  color: var(--title-color);
-  font-weight: var(--font-semi-bold);
-  transition: background-color 0.4s;
-  /* Added transition for background-color */
+  z-index: 1000; /* Higher z-index than other elements */
+  background-color: var(--container-color); /* Customize as needed */
 }
 
 
@@ -330,14 +324,8 @@ img {
 /* Show the dropdown menu on hover */
 .dropdown:hover .dropdown-content {
   display: block;
+  z-index: 1000; /* Ensures it appears on top */
 }
-
-/* Change background color of block on hover */
-.dropdown:hover {
-  background-color: var(--hover-color);
-  /* Change background color on hover */
-}
-
 
 
 /*=============== LOGIN ===============*/
@@ -490,58 +478,4 @@ img {
   }
 }
 
-.container {
-  --bs-gutter-x: 1.5rem;
-  --bs-gutter-y: 0;
-  width: 100%;
-  padding-right: calc(var(--bs-gutter-x) * .5);
-  padding-left: calc(var(--bs-gutter-x) * .5);
-  margin-right: auto;
-  margin-left: auto;
-  color: var(--title-color);
-  /* Set default text color */
-  transition: color 0.4s;
-  /* Add transition effect for color */
-}
 
-.container:hover {
-  color: var(--first-color);
-  /* Change text color on hover */
-}
-
-.py-3 {
-  padding-top: 1rem !important;
-  padding-bottom: 1rem !important;
-  font-size: 1.1em;
-}
-
-.my-4 {
-  margin-top: 1.5rem !important;
-  margin-bottom: 1.5rem !important;
-}
-
-.justify-content-center {
-  justify-content: center !important;
-}
-
-.border-bottom {
-  border-bottom: var(--bs-border-width) var(--bs-border-style) var(--bs-border-color) !important;
-}
-
-.nav {
-  --bs-nav-link-padding-x: 1rem;
-  --bs-nav-link-padding-y: 0.5rem;
-  --bs-nav-link-font-weight: ;
-  --bs-nav-link-color: var(--title-color);
-  --bs-nav-link-hover-color: var(--first-color);
-  list-style: none;
-}
-
-.text-body-secondary {
-  --bs-text-opacity: 1;
-  color: var(--text-color) !important;
-}
-
-.text-center {
-  text-align: center !important;
-}

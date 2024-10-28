@@ -1,29 +1,58 @@
 from django import forms
-from .models import Restaurant
-from .models import Category
-
-class RestaurantForm(forms.ModelForm):
-    class Meta:
-        model = Restaurant
-        fields = '__all__'
-
-    def clean(self):
-        cleaned_data = super().clean()
-        name = cleaned_data.get('name')
-        location = cleaned_data.get('location')
-        if Restaurant.objects.filter(name=name, location=location).exists():
-            raise forms.ValidationError("A restaurant with the same name and location already exists.")
-        return cleaned_data
+from django.core.exceptions import ValidationError
 
 
-class CategoryForm(forms.ModelForm):
-    class Meta:
-        model = Category
-        fields = '__all__'
+class LoginForm(forms.Form):
+    username = forms.CharField(
+        label="Username",
+        max_length=150,
+        widget=forms.TextInput(
+            attrs={"class": "form-control", "placeholder": "Username"}
+        ),
+        required=True,
+    )
+    password = forms.CharField(
+        label="Password",
+        widget=forms.PasswordInput(
+            attrs={"class": "form-control", "placeholder": "Password"}
+        ),
+        required=True,
+    )
 
-    def clean_name(self):
-        name = self.cleaned_data.get('name')
-        if Category.objects.filter(name=name).exists():
-            raise forms.ValidationError("A Category with the same name already exists.")
-        return name
 
+class RestaurantForm(forms.Form):
+    Restaurant_Name = forms.CharField(
+        label="Please Enter your Restaurant Name",
+        max_length=100,
+        widget=forms.TextInput(attrs={"placeholder": "Restaurant Name"}),
+        required=True,
+    )
+    longitude = forms.FloatField(
+        label="Please Insert the longitude",
+        min_value=-180,
+        max_value=180,
+        required=True,
+        help_text="Enter a longitude value between -180 and 180"
+    )
+    latitude = forms.FloatField(
+        label="Please Insert the Latitude",
+        min_value=-90,
+        max_value=90,
+        required=True,
+        help_text="Enter a latitude value between -90 and 90"
+    )
+
+    def clean_latitude(self):
+        latitude = self.cleaned_data.get("latitude")
+        if latitude < -90.0 or latitude > 90.0:
+            raise ValidationError("Enter a latitude value between -90 and 90")
+        return latitude
+
+    def clean_longitude(self):
+        longitude = self.cleaned_data.get("longitude")
+        if longitude < -180.0 or longitude > 180.0:
+            raise ValidationError("Enter a longitude value between -180 and 180")
+        return longitude
+    
+
+        
