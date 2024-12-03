@@ -20,13 +20,35 @@
     <title>Location Form</title>
 </head>
 
-<body>
-    <h2>Enter Coordinates</h2>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Submit</button>
-    </form>
+<style>
+    .button {
+        background-color: #04AA6D;
+        border: none;
+        color: white;
+        padding: 15px 32px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        cursor: pointer;
+    }
+</style>
+
+<body style="display:block;">
+    <div class="whole" style="display: block; padding-left: 5%; padding-right: 5%; padding-top:5cap; font-size:15px;">
+        <div class="form" style="text-align: center;">
+            <h2>Please fill up the form</h2>
+            <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <input type="submit" class="button" value="Submit">
+
+
+            </form>
+        </div>
+
+    </div>
 </body>
 
 </html>

@@ -2,11 +2,15 @@
 
 {% load static %}
 
+
+
 {% block content %}
 
 <ul>
     {% for restaurant in restaurants %}
-        <li><a href="{% url 'restaurant_detail' restaurant.id %}">{{ restaurant.name }}</a></li>
+    <div class="body" style="padding: 2cap;">
+        <li><a href="{% url 'restaurant_detail' restaurant.id %}" class="ResName" style="display:flex; font-size: 20px; ">{{ restaurant.name }}</a></li>
+    </div>
     {% endfor %}
 </ul>
 

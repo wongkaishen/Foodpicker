@@ -1,7 +1,7 @@
 import json
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, get_object_or_404 , render
 from django.contrib.auth.models import User
 from base import settings
 from django.core.mail import EmailMessage
@@ -11,17 +11,23 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from .tokens import generate_token
 from .models import Restaurant
-from django.shortcuts import render, get_object_or_404
-from .forms import RestaurantForm 
+from .forms import RestaurantForm
+from geopy.geocoders import Nominatim
 
 
 # Create your views here.
-def home(request):
+
+
+def home(request):  # home view point
     context = {"title": "Home"}
-    return render(request,"homepage/content/home.html",context,)
+    return render(
+        request,
+        "homepage/content/home.html",
+        context,
+    )
 
 
-def signup(request):
+def signup(request):  # signup view
     if request.method == "POST":
         username = request.POST["username"]
         fname = request.POST["fname"]
@@ -30,36 +36,44 @@ def signup(request):
         pass1 = request.POST["pass1"]
         pass2 = request.POST["pass2"]
 
-        if User.objects.filter(username=username).exists():
-            messages.error(request, "Username already exists! Please try another username.")
-            return redirect("res.home")
+        if User.objects.filter(
+            username=username
+        ).exists():  # look for existance username
+            messages.error(
+                request, "Username already exists! Please try another username."
+            )
+            return redirect("signup")
 
-        if User.objects.filter(email=email).exists():
+        if User.objects.filter(email=email).exists():  # look for existance email
             messages.error(request, "Email already registered!")
-            return redirect("res.home")
+            return redirect("signup")
 
-        if len(username) > 15:
+        if len(username) > 15:  # username cannot more than 15 char
             messages.error(request, "Username must be under 15 characters.")
-            return redirect("res.home")
+            return redirect("signup")
 
-        if pass1 != pass2:
+        if pass1 != pass2:  # look pass1 and pass2 match
             messages.error(request, "Passwords did not match.")
-            return redirect("res.home")
+            return redirect("signup")
 
-        if not username.isalnum():
+        if not username.isalnum():  # see username is alphanumeric
             messages.error(request, "Username must be alphanumeric!")
-            return redirect("res.home")
+            return redirect("signup")
 
-        # Create user
-        myuser = User.objects.create_user(username=username, email=email, password=pass1)
+        # Create user, if all meet requirement
+        myuser = User.objects.create_user(
+            username=username, email=email, password=pass1
+        )
         myuser.first_name = fname
         myuser.last_name = lname
         myuser.is_active = False
-        myuser.save()
+        myuser.save()  # save to database
 
+        # send a message to home page after signup and require user to do confirmation
         messages.success(
             request,
             "Your account has been successfully created. We have sent you a confirmation email; please confirm it to activate your account.",
+            "if you did not see the confirmation link, please check your junk folder.",
         )
 
         # Send confirmation email
@@ -102,10 +116,10 @@ def signin(request):
             messages.success(request, f"Welcome {user.username}!")
             return redirect(
                 "res.home"
-            )  # or any other page you want to redirect after successful login
+            )  # or any other page to redirect after successful login
         else:
             messages.error(request, "Invalid username or password.")
-            return redirect("res.home")  # or to your login page with an error message
+            return redirect("signup")  # or to your login page with an error message
     else:
         return redirect("res.home")  # redirect to home if method is not POST
 
@@ -128,12 +142,12 @@ def activate(request, uidb64, token):
         myuser.save()
         login(request, myuser)
         messages.success(request, "You have successfully comfirmed your account")
-        return redirect("res.home")
+        return redirect("signin")
     else:
         return render(request, "verification\activation_failed.html")
 
 
-def restaurant_list(
+def get_res_list(
     request,
 ):  # used to show the restaurnt id or sort out the restaurant using id's
     restaurants = Restaurant.objects.all()
@@ -144,59 +158,82 @@ def restaurant_list(
     return render(request, "homepage/content/res.html", context)
 
 
-def restaurant_detail(
-    request, id
-):  # this is for the restaurant detail when click into it
+def get_res_detail(request, id):
     restaurant = get_object_or_404(Restaurant, id=id)
-    context = {
-        "restaurant": restaurant,
-        "title": restaurant.name,
-    }
-    return render(request, "homepage/content/restaurant_detail.html", context)
+    return render(
+        request, "homepage/content/restaurant_detail.html", {"restaurant": restaurant}
+    )
 
 
-def all_restaurants_map(request):
+def get_res_map(request):
     # Get all restaurants from the database
     restaurants = Restaurant.objects.all()
 
     # Convert restaurant queryset to a JSON-friendly format
     restaurants_json = json.dumps(
-        list(restaurants.values("name", "description", "latitude", "longitude"))
+        [
+            {
+                "id": r.id,
+                "name": r.name,
+                "description": r.description,
+                "latitude": r.latitude,
+                "longitude": r.longitude,
+                "opentime": r.opentime.strftime("%H:%M:%S"),
+                "closetime": r.closetime.strftime("%H:%M:%S"),
+            }
+            for r in restaurants
+        ]
     )
 
-    # Render the template with the data
     return render(
         request, "homepage/content/map.html", {"restaurants_json": restaurants_json}
     )
 
 
-def about(request):
-    context = {"title": "About"}
-    return render(request, "homepage/content/about.html", context)
+def geocode_address(address):
+    geolocator = Nominatim(user_agent="my_app")
+    location = geolocator.geocode(address)
+    if location:
+        return location.latitude, location.longitude
+    # Fallback to a default location if geocoding fails
+    return 0.0, 0.0  # Default coordinates (e.g., somewhere in the middle of the map)
 
-
-def search(request):
-    context = {"title": "Search"}
-    return render(request, "homepage/content/search.html", context)
-
-
-def map(request):
-    context = {"title": "Map"}
-    return render(request, "homepage/content/map.html", context)
 
 
 def location_view(request):
     if request.method == "POST":
         form = RestaurantForm(request.POST)
         if form.is_valid():
-            latitude = form.cleaned_data["latitude"]
-            longitude = form.cleaned_data["longitude"]
-            # Do something with the valid data (like saving it or processing)
-            return render(
-                request,
-                "homepage/content/form_success.html",
-                {"latitude": latitude, "longitude": longitude},
-            )
+            # Get the full address from the form
+            address = f"{form.cleaned_data['street_address']}, {form.cleaned_data['city']}, {form.cleaned_data['state']}, {form.cleaned_data['country']}"
+
+            # Geocode the address to get latitude and longitude
+            latitude, longitude = geocode_address(address)
+
+            if latitude and longitude:
+                # If geocoding is successful, assign the coordinates to the form instance
+                restaurant = form.save(commit=False)
+                restaurant.latitude = latitude
+                restaurant.longitude = longitude
+                restaurant.save()
+
+                # Render a success page
+                return render(
+                    request,
+                    "homepage/content/form_success.html",
+                    {"message": "Restaurant added successfully!"},
+                )
+
+            else:
+                # If geocoding failed, render an error message
+                return render(
+                    request,
+                    "homepage/content/form_success.html",
+                    {
+                        "message": "Address could not be geocoded. Please check the address."
+                    },
+                )
+
     else:
         form = RestaurantForm()
 
@@ -208,6 +245,11 @@ def contact(request):
     return render(request, "homepage/content/contact.html", context)
 
 
-def forgotpass(request):
-    context = {"title": "Forgot Password"}
-    return render(request, "homepage/accounts/forgotpass.html", context)
+def about(request):
+    context = {"title": "About"}
+    return render(request, "homepage/content/about.html", context)
+
+
+def search(request):
+    context = {"title": "Search"}
+    return render(request, "homepage/content/search.html", context)
