@@ -25,7 +25,7 @@ class RestaurantForm(forms.ModelForm):
         model = Restaurant
         fields = ['name', 'description', 'price', 'opentime','closetime', 'latitude', 'longitude','street_address','city','state','postal_code','country']
         labels = {
-            "name":"Please Enter your restaurant name",
+            "name":"Please enter your restaurant name",
             "description":"Please enter a description",
             "price":"Please enter the price",
             "opentime":"Please enter the opening time",
@@ -35,7 +35,7 @@ class RestaurantForm(forms.ModelForm):
             "street_address":"Please enter the street address",
             "city":"Please enter the city",
             "state":"Please enter the state",
-            "postal_code":"Please enter the postal_code",
+            "postal_code":"Please enter the postal code",
             "country":"Please enter the country",
 
 
