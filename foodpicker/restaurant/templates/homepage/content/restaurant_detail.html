@@ -1,61 +1,82 @@
 {% extends 'homepage/content/main.html' %}
-
 {% load static %}
 
-
 {% block content %}
-<title>{{ restaurant.name }}</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+
+<div class="restaurant-details">
+    <h1 class="restaurant-name">{{ restaurant.name }}</h1>
+    <div class="restaurant-info">
+        <p><strong>Working Hour:</strong> {{ restaurant.opentime }}</p>
+        <p><strong>Closing Hour:</strong> {{ restaurant.closetime }}</p>
+        <p><strong>Price:</strong> RM{{ restaurant.price }}</p>
+        <p class="restaurant-description">{{ restaurant.description }}</p>
+    </div>
+
+    <div id="map"></div>
+</div>
+
+<!-- Leaflet Map -->
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+
+<script>
+    var map = L.map('map').setView([{{ restaurant.latitude }}, {{ restaurant.longitude }}], 15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+    L.marker([{{ restaurant.latitude }}, {{ restaurant.longitude }}]).addTo(map)
+        .bindPopup('<b>{{ restaurant.name }}</b><br>{{ restaurant.description }}');
+</script>
 
 <style>
+    /* Global Styles */
+    body {
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Restaurant Details */
+    .restaurant-details {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 1rem;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .restaurant-name {
+        font-size: 2rem;
+        color: #333;
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+
+    .restaurant-info p {
+        margin: 0.5rem 0;
+        color: #555;
+        font-size: 1rem;
+    }
+
+    .restaurant-info strong {
+        color: #222;
+    }
+
+    .restaurant-description {
+        margin-top: 1rem;
+        color: #666;
+        line-height: 1.5;
+    }
+
+    /* Map Styling */
     #map {
         height: 500px;
-        /* Adjust as necessary */
         width: 100%;
+        margin-top: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
 </style>
-</head>
-
-<body>
-    <div class="Restaurant_Name" style="text-align: center;padding-top: 10px;">
-        <h1>{{ restaurant.name }}</h1>
-    </div>
-    <div class="description" style="text-align: center;">
-        <p>{{ restaurant.description }}</p>
-    </div>
-    <script>
-        var restaurants = [
-            {% for restaurant in restaurants %}
-        {
-            name: "{{ restaurant.name }}",
-                description: "{{ restaurant.description }}",
-                    latitude: { { restaurant.latitude } },
-            longitude: { { restaurant.longitude } }
-        } {% if not forloop.last %}, {% endif %}  <!-- Conditional comma -->
-        {% endfor %}
-        ];
-    </script>
-
-    <!-- Div to hold the OpenStreetMap -->
-    <div id="map" style="z-index: 1;"></div>
-
-    <script>
-        // Set up the map
-        var map = L.map('map').setView([{{ restaurant.latitude }}, { { restaurant.longitude } }], 13);
-
-        // Add OpenStreetMap tiles
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(map);
-
-        // Add a marker to the map
-        L.marker([{{ restaurant.latitude }}, {{ restaurant.longitude }}]).addTo(map)
-            .bindPopup('<b>{{ restaurant.name }}</b><br />{{ restaurant.description }}').openPopup();
-    </script>
-</body>
-
-</html>
 
 {% endblock %}

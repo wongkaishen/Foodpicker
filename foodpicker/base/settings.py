@@ -11,24 +11,30 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+from dotenv import load_dotenv
 import os
+load_dotenv()
 from . info import *
-
+import environ
+env = environ.Env()
+environ.Env.read_env()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_HOST_USER = 'foodpicker2024@gmail.com'
-EMAIL_HOST_PASSWORD = 'jcaq ojio uqzm bvkt '
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
 EMAIL_PORT = 587
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
+
+
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = ["haha.txt"]
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -95,7 +101,7 @@ DATABASES = {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',  # Use the PostGIS engine
         'NAME': 'foodpicker',
         'USER': 'postgres',
-        'PASSWORD': 'wong',
+        'PASSWORD': env('PASSWORD'),
         'HOST': 'localhost',
         'PORT': '5432',
         }
