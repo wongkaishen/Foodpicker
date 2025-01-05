@@ -2,7 +2,7 @@
 
     "builds": [{
 
-        "src": "foodpicker/wsgi.py",
+        "src": "foodpicker/base/wsgi.py",
 
         "use": "@vercel/python",
 
@@ -16,7 +16,7 @@
 
             "src": "/(.*)",
 
-            "dest": "foodpicker/wsgi.py"
+            "dest": "foodpicker/base/wsgi.py"
 
         }
 
