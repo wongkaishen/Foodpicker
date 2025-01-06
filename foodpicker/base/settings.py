@@ -16,6 +16,7 @@ import os
 load_dotenv()
 from . info import *
 import environ
+import dj_database_url
 env = environ.Env()
 environ.Env.read_env()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -40,7 +41,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 DEBUG = True
 
 
-ALLOWED_HOSTS = ['.vercel.app']
+ALLOWED_HOSTS = []
 
 
 
@@ -90,26 +91,30 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "base.wsgi.app"
+WSGI_APPLICATION = "base.wsgi.application"
 
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
+# DATABASES = {
+#     "default": {
+#         'ENGINE': 'django.contrib.gis.db.backends.postgis',  # Use the PostGIS engine
+#         'NAME': 'foodpicker',
+#         'USER': 'postgres',
+#         'PASSWORD': env('PASSWORD'),
+#         'HOST': 'localhost',
+#         'PORT': '5432',
+#         }
+# }
+
 DATABASES = {
-    "default": {
-        'ENGINE': 'django.contrib.gis.db.backends.postgis',  # Use the PostGIS engine
-        'NAME': 'foodpicker',
-        'USER': 'postgres',
-        'PASSWORD': env('PASSWORD'),
-        'HOST': 'localhost',
-        'PORT': '5432',
-        }
+    "default": dj_database_url.parse(os.environ.get("DATABASE_URL"))
 }
 
 
 # Password validation
-# https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
+# https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators 
 
 AUTH_PASSWORD_VALIDATORS = [
     {
