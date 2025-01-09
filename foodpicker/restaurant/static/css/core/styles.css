@@ -176,60 +176,39 @@ img {
   color: var(--first-color);
 }
 
-/* Mobile Menu Adjustments */
+/* Navigation for mobile devices */
 @media screen and (max-width: 1023px) {
   .nav__menu {
-    display: block;
-    position: absolute;
-    top: 0;
+    position: fixed;
+    top: -100%;
     left: 0;
-    width: 100%;
-    height: 100%;
     background-color: var(--body-color);
     box-shadow: 0 8px 16px hsla(230, 75%, 32%, .15);
-    padding: 2rem 1.5rem;
-    z-index: 10;
-    transition: opacity 0.3s ease, transform 0.3s ease;
-  }
-
-  /* Make the logout link look prominent */
-  .nav__logout {
-    display: block;
-    text-align: center;
-    background-color: var(--first-color);
-    color: #fff;
-    padding: 1rem;
-    border-radius: .5rem;
-    margin-top: 1rem;
-    font-weight: var(--font-semi-bold);
-    transition: background-color 0.3s ease;
-  }
-
-  .nav__logout:hover {
-    background-color: var(--hover-color);
-  }
-
-  .nav__link {
-    font-size: 1rem;
-    color: var(--text-color);
-  }
-
-  /* Menu Toggle */
-  .nav__toggle {
-    display: block;
-  }
-
-  /* Ensure the menu closes when clicking outside */
-  .nav__close {
-    position: absolute;
-    top: 1rem;
-    right: 1.5rem;
-    font-size: 2rem;
-    color: var(--text-color);
-    cursor: pointer;
+    width: 100%;
+    padding-block: 4.5rem 4rem;
+    transition: top .4s;
+    z-index: 1;
   }
 }
 
+.nav__list {
+  display: flex;
+  flex-direction: column;
+  row-gap: 2.5rem;
+  text-align: center;
+}
+
+.nav__link {
+  color: var(--title-color);
+  font-weight: var(--font-semi-bold);
+  transition: color .4s;
+}
+
+.nav__close {
+  position: absolute;
+  top: 1.15rem;
+  right: 1.5rem;
+}
 
 /* Show menu */
 .show-menu {
@@ -311,14 +290,14 @@ img {
 /* The container <div> - needed to position the dropdown content */
 .dropdown {
   position: relative;
-  z-index: 1; /* Make sure the dropdown has a high z-index */
+  z-index: 999; /* Make sure the dropdown has a high z-index */
 }
 
 /* Dropdown Content (Hidden by Default) */
 .dropdown-content {
   display: none;
   position: absolute;
-  z-index: 1; /* Higher z-index than other elements */
+  z-index: 1000; /* Higher z-index than other elements */
   background-color: var(--container-color); /* Customize as needed */
 }
 
