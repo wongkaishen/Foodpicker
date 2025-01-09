@@ -62,7 +62,6 @@ INSTALLED_APPS = [
 ]
 
 
-
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -97,20 +96,20 @@ WSGI_APPLICATION = "base.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-# DATABASES = {
-#     "default": {
-#         'ENGINE': 'django.contrib.gis.db.backends.postgis',  # Use the PostGIS engine
-#         'NAME': 'foodpicker',
-#         'USER': 'postgres',
-#         'PASSWORD': env('PASSWORD'),
-#         'HOST': 'localhost',
-#         'PORT': '5432',
-#         }
-# }
-
 DATABASES = {
-    "default": dj_database_url.parse("postgresql://foodpickerdb_tta9_user:I4IPU0JywQu53aUmCX6ldIbTCnpTn6KQ@dpg-cttrlra3esus739619rg-a.oregon-postgres.render.com/foodpickerdb_tta9")
+    "default": {
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',  # Use the PostGIS engine
+        'NAME': 'postgres',
+        'USER': 'postgres',  
+        'PASSWORD': env('PASSWORD'),
+        'HOST': 'localhost',
+        'PORT': '5432',
+        }
 }
+
+# DATABASES = {
+#     "default": dj_database_url.parse("postgresql://foodpickerdb_tta9_user:I4IPU0JywQu53aUmCX6ldIbTCnpTn6KQ@dpg-cttrlra3esus739619rg-a.oregon-postgres.render.com/foodpickerdb_tta9")
+# }
 
 
 # Password validation
