@@ -182,7 +182,8 @@ img {
     position: fixed;
     top: -100%;
     left: 0;
-    background-color: var(--body-color);
+    backdrop-filter: blur(20px);
+    background-color: rgba(255,255,255,0.5);
     box-shadow: 0 8px 16px hsla(230, 75%, 32%, .15);
     width: 100%;
     padding-block: 4.5rem 4rem;
