@@ -16,7 +16,7 @@ import os
 load_dotenv()
 from . info import *
 import environ
-import dj_database_url
+# import dj_database_url
 env = environ.Env()
 environ.Env.read_env()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -97,6 +97,20 @@ WSGI_APPLICATION = "base.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
+<<<<<<< Updated upstream
+=======
+DATABASES = {
+    "default": {
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',  # Use the PostGIS engine
+        'NAME': 'foodpicker',
+        'USER': 'postgres',  
+        'PASSWORD': env('PASSWORD'),
+        'HOST': 'localhost',
+        'PORT': '5432',
+        }
+}
+
+>>>>>>> Stashed changes
 # DATABASES = {
 #     "default": {
 #         'ENGINE': 'django.contrib.gis.db.backends.postgis',  # Use the PostGIS engine
