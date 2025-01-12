@@ -19,6 +19,9 @@ from functools import wraps
 
 # Create your views here.
 
+def reset_pass(request):
+    context = {"title":"Reset Password"}
+    return render(request, "homepage/accounts/forgotpass.html", context)
 
 def home(request):  # home view point
     context = {"title": "Home"}

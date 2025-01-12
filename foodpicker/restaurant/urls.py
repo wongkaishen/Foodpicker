@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views
+from . import views 
 from django.contrib.auth import views as auth_views
 
 urlpatterns = [
@@ -16,4 +16,5 @@ urlpatterns = [
     path('restaurant/',views.get_res_list,name="res.res"), #for the restaurant list
     path('restaurant/<int:id>/', views.get_res_detail, name='restaurant_detail'), #for the restaurant detail id
     path('map/',views.get_res_map,name="res.map"),   #for the whole map view of the restaurant
+    path('password_reset/',views.reset_pass,name="resetpass"), 
 ]
