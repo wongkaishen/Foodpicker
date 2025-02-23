@@ -17,4 +17,6 @@ urlpatterns = [
     path('restaurant/<int:id>/', views.get_res_detail, name='restaurant_detail'), #for the restaurant detail id
     path('map/',views.get_res_map,name="res.map"),   #for the whole map view of the restaurant
     path('password_reset/',views.reset_pass,name="resetpass"), 
+    path('restaurants_within_radius/', views.restaurants_within_radius, name="restaurants_within_radius"),
+
 ]

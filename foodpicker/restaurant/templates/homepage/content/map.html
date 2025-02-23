@@ -10,8 +10,17 @@
     </div>
     {% endfor %}
     <h1 class="page-title">All Restaurants Map</h1>
+    <select id="radiusFilter">
+        <option value="2">2 km</option>
+        <option value="5" selected>5 km</option>
+        <option value="10">10 km</option>
+        <option value="15">15 km</option>
+        <option value="20">20 km</option>
+    </select>
     <div id="map"></div>
+    
 </div>
+
 
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
@@ -79,27 +88,91 @@
 </style>
 
 <script>
-    var restaurants = {{ restaurants_json|safe }};
-    var map = L.map('map').setView([2.9252, 101.6414], 12); // Adjust zoom level for better overview
+    var map = L.map('map').setView([2.9252, 101.6414], 12); // Default location
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    // Add restaurant markers
-    restaurants.forEach(function(restaurant) {
-        var marker = L.marker([restaurant.latitude, restaurant.longitude]).addTo(map);
-        marker.bindPopup(`
-            <div class="popup-content">
-                <b>${restaurant.name}</b>
-                <p>${restaurant.description}</p>
-                <p><strong>Working Hour:</strong> ${restaurant.opentime}<br>
-                   <strong>Closing Hour:</strong> ${restaurant.closetime}</p>
-                <a href="/restaurant/${restaurant.id}/" target="_blank" class="details-link">View Details</a>
-            </div>
-        `);
+    var userMarker;
+    var restaurantMarkers = [];
+    var userLat, userLon;
+
+    function fetchRestaurants(radius) {
+        if (!userLat || !userLon) {
+            console.log("User location not available yet.");
+            return;
+        }
+
+        fetch(`/restaurants_within_radius/?latitude=${userLat}&longitude=${userLon}&radius=${radius}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+                return;
+            }
+
+            // Remove existing restaurant markers
+            restaurantMarkers.forEach(marker => map.removeLayer(marker));
+            restaurantMarkers = [];
+
+            // Add new restaurant markers
+            data.restaurants.forEach(restaurant => {
+                var marker = L.marker([restaurant.latitude, restaurant.longitude]).addTo(map);
+                var popupContent = `
+                    <div class="popup-content">
+                        <b>${restaurant.name}</b><br>
+                        Open: ${restaurant.opentime} - ${restaurant.closetime}<br>
+                        Distance: ${restaurant.distance_km.toFixed(2)} km<br>
+                        <a href="/restaurant/${restaurant.id}/" class="details-link">View Details</a>
+                    </div>
+                `;
+                marker.bindPopup(popupContent);
+                restaurantMarkers.push(marker);
+            });
+        });
+    }
+
+    function fetchNearestRestaurant() {
+        fetch(`/nearest_restaurant?latitude=${userLat}&longitude=${userLon}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+            } else {
+                console.log("Nearest Restaurant:", data);
+                alert(`Nearest restaurant: ${data.name}, Distance: ${data.distance_km.toFixed(2)} km`);
+            }
+        });
+    }
+
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(position => {
+            userLat = position.coords.latitude;
+            userLon = position.coords.longitude;
+            map.setView([userLat, userLon], 14);
+
+            // Set user location marker
+            if (userMarker) map.removeLayer(userMarker);
+            userMarker = L.marker([userLat, userLon]).addTo(map)
+                .bindPopup("<b>Your Location</b>")
+                .openPopup();
+
+            fetchNearestRestaurant();
+            fetchRestaurants(5); // Default radius: 5km
+        }, () => {
+            alert("Geolocation permission denied. Using default location.");
+        });
+    } else {
+        alert("Geolocation is not supported by this browser.");
+    }
+
+    // Update restaurant markers when radius changes
+    document.getElementById("radiusFilter").addEventListener("change", function () {
+        fetchRestaurants(this.value);
     });
 </script>
+
+
 
 
 {% endblock %}

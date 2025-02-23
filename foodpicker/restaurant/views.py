@@ -15,6 +15,8 @@ from .models import Restaurant
 from .forms import RestaurantForm
 from geopy.geocoders import Nominatim
 from functools import wraps
+from django.http import JsonResponse
+from geopy.distance import geodesic
 
 
 # Create your views here.
@@ -177,40 +179,58 @@ def get_res_detail(request, id):
         request, "homepage/content/restaurant_detail.html", {"restaurant": restaurant}
     )
 
-@signup_required
+
+
 def get_res_map(request):
-    # Get all restaurants from the database
+    """Render the restaurant map view with restaurant data."""
     restaurants = Restaurant.objects.all()
-
-    # Convert restaurant queryset to a JSON-friendly format
-    restaurants_json = json.dumps(
-        [
-            {
-                "id": r.id,
-                "name": r.name,
-                "description": r.description,
-                "latitude": r.latitude,
-                "longitude": r.longitude,
-                "opentime": r.opentime.strftime("%H:%M:%S"),
-                "closetime": r.closetime.strftime("%H:%M:%S"),
-            }
-            for r in restaurants
-        ]
-    )
-
-    return render(
-        request, "homepage/content/map.html", {"restaurants_json": restaurants_json}
-    )
+    restaurants_json = json.dumps([
+        {
+            "id": r.id,
+            "name": r.name,
+            "latitude": r.latitude,
+            "longitude": r.longitude,
+            "opentime": r.opentime.strftime("%H:%M:%S"),
+            "closetime": r.closetime.strftime("%H:%M:%S"),
+        }
+        for r in restaurants if r.latitude and r.longitude  # Ensure we only send valid coordinates
+    ])
+    
+    return render(request, "homepage/content/map.html", {"restaurants_json": restaurants_json})
 
 
 def geocode_address(address):
-    geolocator = Nominatim(user_agent="my_app")
+    """Geocode an address using OpenStreetMap (Nominatim)."""
+    geolocator = Nominatim(user_agent="restaurant_locator")
     location = geolocator.geocode(address)
     if location:
         return location.latitude, location.longitude
-    # Fallback to a default location if geocoding fails
-    return 0.0, 0.0  # Default coordinates (e.g., somewhere in the middle of the map)
+    return None, None
 
+def restaurants_within_radius(request):
+    """Return restaurants within the selected radius from the user's location."""
+    try:
+        user_lat = float(request.GET.get("latitude"))
+        user_lon = float(request.GET.get("longitude"))
+        radius = float(request.GET.get("radius"))  # in km
+    except (TypeError, ValueError):
+        return JsonResponse({"error": "Invalid parameters"}, status=400)
+
+    user_location = (user_lat, user_lon)
+    restaurants = Restaurant.objects.all()
+    
+    filtered_restaurants = [
+        {
+            "id": r.id,
+            "name": r.name,
+            "latitude": r.latitude,
+            "longitude": r.longitude,
+            "distance_km": geodesic(user_location, (r.latitude, r.longitude)).km
+        }
+        for r in restaurants if r.latitude and r.longitude and geodesic(user_location, (r.latitude, r.longitude)).km <= radius
+    ]
+
+    return JsonResponse({"restaurants": filtered_restaurants})
 
 @signup_required
 def location_view(request):
@@ -251,6 +271,29 @@ def location_view(request):
 
     return render(request, "homepage/content/form.html", {"form": form})
 
+@signup_required
+def nearest_restaurant(request):
+    """Find the nearest restaurant to the user's location."""
+    user_lat = request.GET.get("latitude")
+    user_lon = request.GET.get("longitude")
+    
+    if not user_lat or not user_lon:
+        return JsonResponse({"error": "User location required"}, status=400)
+
+    user_location = (float(user_lat), float(user_lon))
+    restaurants = Restaurant.objects.all()
+
+    nearest = min(
+        restaurants,
+        key=lambda r: geodesic(user_location, (r.latitude, r.longitude)).km if r.latitude and r.longitude else float('inf')
+    )
+
+    return JsonResponse({
+        "name": nearest.name,
+        "latitude": nearest.latitude,
+        "longitude": nearest.longitude,
+        "distance_km": nearest.get_distance(user_location),
+    })
 
 def contact(request):
     context = {"title": "Contact"}

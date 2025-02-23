@@ -58,7 +58,6 @@ INSTALLED_APPS = [
     "restaurant",
     "captcha",
     "django.contrib.gis"
-    
 ]
 
 
