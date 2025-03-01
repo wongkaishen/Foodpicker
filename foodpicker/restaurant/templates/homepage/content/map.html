@@ -9,51 +9,73 @@
         <strong>Messages:</strong> {{ message }}
     </div>
     {% endfor %}
-    <h1 class="page-title">All Restaurants Map</h1>
-    <select id="radiusFilter">
-        <option value="2">2 km</option>
-        <option value="5" selected>5 km</option>
-        <option value="10">10 km</option>
-        <option value="15">15 km</option>
-        <option value="20">20 km</option>
-    </select>
-    <div id="map"></div>
     
-</div>
+    <h1 class="page-title">All Restaurants Map</h1>
+    
+    <div class="filter-container">
+        <label for="radiusFilter">Filter by distance:</label>
+        <select id="radiusFilter">
+            <option value="2">2 km</option>
+            <option value="5" selected>5 km</option>
+            <option value="10">10 km</option>
+            <option value="15">15 km</option>
+            <option value="20">20 km</option>
+        </select>
+        <span id="loadingIndicator" class="hidden">Loading...</span>
+    </div>
 
+    <div id="map"></div>
+</div>
 
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+
 <style>
-    /* Page Container */
     .all-restaurants-map {
         max-width: 1200px;
         margin: 2rem auto;
-        padding: 1rem;
+        padding: 1.5rem;
         background: #fff;
-        border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        border-radius: 10px;
+        box-shadow: 0 5px 8px rgba(0, 0, 0, 0.1);
         text-align: center;
-        z-index: 0;
     }
 
-    /* Title Styling */
     .page-title {
         font-size: 2rem;
         color: #333;
-        margin-bottom: 1.5rem;
+        margin-bottom: 1rem;
     }
 
-    /* Map Styling */
+    .filter-container {
+        margin-bottom: 1rem;
+    }
+
+    #radiusFilter {
+        padding: 5px 10px;
+        font-size: 1rem;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        margin-left: 5px;
+    }
+
+    #loadingIndicator {
+        margin-left: 10px;
+        color: #666;
+        font-style: italic;
+    }
+
+    .hidden {
+        display: none;
+    }
+
     #map {
         height: 650px;
         width: 100%;
         border-radius: 8px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        z-index: 0;
     }
 
-    /* Popup Content Styling */
     .popup-content {
         font-size: 0.9rem;
         color: #444;
@@ -64,11 +86,6 @@
         color: #222;
     }
 
-    .popup-content p {
-        margin: 0.5rem 0;
-    }
-
-    /* Details Link */
     .details-link {
         display: inline-block;
         margin-top: 0.5rem;
@@ -88,91 +105,116 @@
 </style>
 
 <script>
-    var map = L.map('map').setView([2.9252, 101.6414], 12); // Default location
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
+    let map;
+    let userMarker;
+    let restaurantMarkers = [];
+    let userLat, userLon;
+    const radiusFilter = document.getElementById("radiusFilter");
+    const loadingIndicator = document.getElementById("loadingIndicator");
 
-    var userMarker;
-    var restaurantMarkers = [];
-    var userLat, userLon;
+    function initializeMap(lat, lon) {
+        map = L.map('map').setView([lat, lon], 14);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
 
-    function fetchRestaurants(radius) {
+        userMarker = L.marker([lat, lon]).addTo(map)
+            .bindPopup("<b>Your Location</b>")
+            .openPopup();
+    }
+
+    function updateMap(lat, lon) {
+        if (!map) initializeMap(lat, lon);
+        map.setView([lat, lon], 14);
+        if (userMarker) map.removeLayer(userMarker);
+        userMarker = L.marker([lat, lon]).addTo(map)
+            .bindPopup("<b>Your Location</b>")
+            .openPopup();
+    }
+
+    async function fetchRestaurants(radius) {
         if (!userLat || !userLon) {
-            console.log("User location not available yet.");
+            console.log("User location not available.");
             return;
         }
 
-        fetch(`/restaurants_within_radius/?latitude=${userLat}&longitude=${userLon}&radius=${radius}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.error) {
-                alert(data.error);
-                return;
-            }
+        loadingIndicator.classList.remove("hidden");
 
-            // Remove existing restaurant markers
+        try {
+            const response = await fetch(`/restaurants_within_radius/?latitude=${userLat}&longitude=${userLon}&radius=${radius}`);
+            const data = await response.json();
+
+            if (data.error) return alert(data.error);
+
             restaurantMarkers.forEach(marker => map.removeLayer(marker));
             restaurantMarkers = [];
 
-            // Add new restaurant markers
             data.restaurants.forEach(restaurant => {
-                var marker = L.marker([restaurant.latitude, restaurant.longitude]).addTo(map);
-                var popupContent = `
+                const marker = L.marker([restaurant.latitude, restaurant.longitude]).addTo(map);
+                marker.bindPopup(`
                     <div class="popup-content">
                         <b>${restaurant.name}</b><br>
                         Open: ${restaurant.opentime} - ${restaurant.closetime}<br>
                         Distance: ${restaurant.distance_km.toFixed(2)} km<br>
                         <a href="/restaurant/${restaurant.id}/" class="details-link">View Details</a>
                     </div>
-                `;
-                marker.bindPopup(popupContent);
+                `);
                 restaurantMarkers.push(marker);
             });
-        });
+        } catch (error) {
+            console.error("Error fetching restaurants:", error);
+        } finally {
+            loadingIndicator.classList.add("hidden");
+        }
     }
 
-    function fetchNearestRestaurant() {
-        fetch(`/nearest_restaurant?latitude=${userLat}&longitude=${userLon}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.error) {
-                alert(data.error);
-            } else {
-                console.log("Nearest Restaurant:", data);
-                alert(`Nearest restaurant: ${data.name}, Distance: ${data.distance_km.toFixed(2)} km`);
-            }
-        });
+    async function fetchNearestRestaurant() {
+        if (!userLat || !userLon) return;
+
+        try {
+            const response = await fetch(`/nearest_restaurant?latitude=${userLat}&longitude=${userLon}`);
+            const data = await response.json();
+
+            if (data.error) return alert(data.error);
+
+            console.log("Nearest Restaurant:", data);
+            alert(`Nearest restaurant: ${data.name}, Distance: ${data.distance_km.toFixed(2)} km`);
+        } catch (error) {
+            console.error("Error fetching nearest restaurant:", error);
+        }
     }
 
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(position => {
-            userLat = position.coords.latitude;
-            userLon = position.coords.longitude;
-            map.setView([userLat, userLon], 14);
+    function handleLocationSuccess(position) {
+        userLat = position.coords.latitude;
+        userLon = position.coords.longitude;
 
-            // Set user location marker
-            if (userMarker) map.removeLayer(userMarker);
-            userMarker = L.marker([userLat, userLon]).addTo(map)
-                .bindPopup("<b>Your Location</b>")
-                .openPopup();
-
-            fetchNearestRestaurant();
-            fetchRestaurants(5); // Default radius: 5km
-        }, () => {
-            alert("Geolocation permission denied. Using default location.");
-        });
-    } else {
-        alert("Geolocation is not supported by this browser.");
+        updateMap(userLat, userLon);
+        fetchNearestRestaurant();
+        fetchRestaurants(radiusFilter.value);
     }
 
-    // Update restaurant markers when radius changes
-    document.getElementById("radiusFilter").addEventListener("change", function () {
-        fetchRestaurants(this.value);
-    });
+    function handleLocationError(error) {
+        console.error("Geolocation error:", error);
+        alert("Unable to get your location. Please enable location services.");
+        initializeMap(2.9252, 101.6414); // Default fallback location
+    }
+
+    function getUserLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(handleLocationSuccess, handleLocationError, {
+                enableHighAccuracy: true, 
+                timeout: 5000, 
+                maximumAge: 0 
+            });
+        } else {
+            alert("Geolocation is not supported by your browser.");
+            initializeMap(2.9252, 101.6414); // Fallback location
+        }
+    }
+
+    radiusFilter.addEventListener("change", () => fetchRestaurants(radiusFilter.value));
+
+    getUserLocation();
 </script>
-
-
-
 
 {% endblock %}

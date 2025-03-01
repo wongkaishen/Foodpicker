@@ -182,8 +182,8 @@ def get_res_detail(request, id):
 
 
 def get_res_map(request):
-    """Render the restaurant map view with restaurant data."""
-    restaurants = Restaurant.objects.all()
+    """Render the restaurant map view with approved restaurant data."""
+    restaurants = Restaurant.objects.filter(approved=True)  # Only approved restaurants
     restaurants_json = json.dumps([
         {
             "id": r.id,
@@ -193,10 +193,11 @@ def get_res_map(request):
             "opentime": r.opentime.strftime("%H:%M:%S"),
             "closetime": r.closetime.strftime("%H:%M:%S"),
         }
-        for r in restaurants if r.latitude and r.longitude  # Ensure we only send valid coordinates
+        for r in restaurants if r.latitude and r.longitude
     ])
     
     return render(request, "homepage/content/map.html", {"restaurants_json": restaurants_json})
+
 
 
 def geocode_address(address):
@@ -239,6 +240,10 @@ def location_view(request):
         if form.is_valid():
             restaurant = form.save(commit=False)
 
+            # Assign the currently logged-in user
+            restaurant.submitted_by = request.user
+            restaurant.approved = False  # Mark as unapproved by default
+
             # If address is provided, attempt geocoding
             if all([
                 form.cleaned_data["street_address"],
@@ -247,7 +252,6 @@ def location_view(request):
                 form.cleaned_data["postal_code"],
                 form.cleaned_data["country"],
             ]):
-                # Generate full address string
                 address = f"{form.cleaned_data['street_address']}, {form.cleaned_data['city']}, {form.cleaned_data['state']}, {form.cleaned_data['postal_code']}, {form.cleaned_data['country']}"
                 latitude, longitude = geocode_address(address)
                 if latitude is not None and longitude is not None:
@@ -264,12 +268,14 @@ def location_view(request):
             return render(
                 request,
                 "homepage/content/form_success.html",
-                {"message": "Restaurant added successfully!"},
+                {"message": "Restaurant submitted for approval!"},
             )
     else:
         form = RestaurantForm()
 
     return render(request, "homepage/content/form.html", {"form": form})
+
+
 
 @signup_required
 def nearest_restaurant(request):

@@ -1,5 +1,6 @@
 from django.db import models
 from geopy.distance import geodesic
+from django.contrib.auth.models import User
 
 class Restaurant(models.Model):
     id = models.BigAutoField(primary_key=True)  # Ensure auto-increment
@@ -15,14 +16,10 @@ class Restaurant(models.Model):
     state = models.CharField(max_length=100, blank=True)
     postal_code = models.CharField(max_length=20, blank=True)
     country = models.CharField(max_length=100, blank=True)
-
-    def save(self, *args, **kwargs):
-        if not self.id:  # If no ID, generate a new one
-            from django.db import connection
-            with connection.cursor() as cursor:
-                cursor.execute("SELECT nextval('restaurant_restaurant_id_seq')")
-                self.id = cursor.fetchone()[0]
-        super().save(*args, **kwargs)
+    
+    # New fields for approval system
+    approved = models.BooleanField(default=False)  # False means unapproved by default
+    submitted_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)  # Track who submitted
 
     def __str__(self):
         return self.name
