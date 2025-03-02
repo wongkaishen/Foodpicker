@@ -17,6 +17,13 @@ from geopy.geocoders import Nominatim
 from functools import wraps
 from django.http import JsonResponse
 from geopy.distance import geodesic
+from rest_framework import viewsets, permissions, status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from .serializers import RestaurantSerializer, UserSerializer
+from rest_framework.permissions import AllowAny
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
+from django.middleware.csrf import get_token
 
 
 # Create your views here.
@@ -34,82 +41,98 @@ def home(request):  # home view point
     )
 
 
+@ensure_csrf_cookie
+def get_csrf_token(request):
+    return JsonResponse({'csrfToken': get_token(request)})
+
+@csrf_protect
 def signup(request):  # signup view
     if request.method == "POST":
-        username = request.POST["username"]
-        fname = request.POST["fname"]
-        lname = request.POST["lname"]
-        email = request.POST["email"]
-        pass1 = request.POST["pass1"]
-        pass2 = request.POST["pass2"]
+        username = request.POST.get("username")
+        fname = request.POST.get("fname")
+        lname = request.POST.get("lname")
+        email = request.POST.get("email")
+        pass1 = request.POST.get("pass1")
+        pass2 = request.POST.get("pass2")
 
-        if User.objects.filter(
-            username=username
-        ).exists():  # look for existance username
-            messages.error(
-                request, "Username already exists! Please try another username."
+        # Validation checks
+        if User.objects.filter(username=username).exists():
+            return JsonResponse({
+                "success": False,
+                "message": "Username already exists! Please try another username."
+            }, status=400)
+
+        if User.objects.filter(email=email).exists():
+            return JsonResponse({
+                "success": False,
+                "message": "Email already registered!"
+            }, status=400)
+
+        if len(username) > 15:
+            return JsonResponse({
+                "success": False,
+                "message": "Username must be under 15 characters."
+            }, status=400)
+
+        if pass1 != pass2:
+            return JsonResponse({
+                "success": False,
+                "message": "Passwords did not match."
+            }, status=400)
+
+        if not username.isalnum():
+            return JsonResponse({
+                "success": False,
+                "message": "Username must be alphanumeric!"
+            }, status=400)
+
+        try:
+            # Create user
+            myuser = User.objects.create_user(
+                username=username, email=email, password=pass1
             )
-            return redirect("signup")
+            myuser.first_name = fname
+            myuser.last_name = lname
+            myuser.is_active = False
+            myuser.save()
 
-        if User.objects.filter(email=email).exists():  # look for existance email
-            messages.error(request, "Email already registered!")
-            return redirect("signup")
+            # Send confirmation email
+            current_site = get_current_site(request)
+            email_subject = "Confirm Your Email @ Foodpicker - Login"
+            message2 = render_to_string(
+                "verification/email_confirmation.html",
+                {
+                    "name": myuser.username,
+                    "domain": current_site.domain,
+                    "uid": urlsafe_base64_encode(force_bytes(myuser.pk)),
+                    "token": generate_token().make_token(myuser),
+                },
+            )
 
-        if len(username) > 15:  # username cannot more than 15 char
-            messages.error(request, "Username must be under 15 characters.")
-            return redirect("signup")
+            confirmation_email = EmailMessage(
+                email_subject,
+                message2,
+                settings.EMAIL_HOST_USER,
+                [myuser.email],
+            )
+            confirmation_email.fail_silently = True
+            confirmation_email.send()
 
-        if pass1 != pass2:  # look pass1 and pass2 match
-            messages.error(request, "Passwords did not match.")
-            return redirect("signup")
+            return JsonResponse({
+                "success": True,
+                "message": "Account created successfully! Please check your email for verification."
+            })
 
-        if not username.isalnum():  # see username is alphanumeric
-            messages.error(request, "Username must be alphanumeric!")
-            return redirect("signup")
+        except Exception as e:
+            return JsonResponse({
+                "success": False,
+                "message": str(e)
+            }, status=500)
 
-        # Create user, if all meet requirement
-        myuser = User.objects.create_user(
-            username=username, email=email, password=pass1
-        )
-        myuser.first_name = fname
-        myuser.last_name = lname
-        myuser.is_active = False
-        myuser.save()  # save to database
-
-        # send a message to home page after signup and require user to do confirmation
-        messages.success(
-            request,
-            "Your account has been successfully created. We have sent you a confirmation email; please confirm it to activate your account.",
-            "if you did not see the confirmation link, please check your junk folder.",
-        )
-
-        # Send confirmation email
-        current_site = get_current_site(request)
-        email_subject = "Confirm Your Email @ Foodpicker - Login"
-        message2 = render_to_string(
-            "verification/email_confirmation.html",
-            {
-                "name": myuser.username,
-                "domain": current_site.domain,
-                "uid": urlsafe_base64_encode(force_bytes(myuser.pk)),
-                "token": generate_token().make_token(myuser),
-            },
-        )
-
-        # Rename the EmailMessage variable to avoid confusion
-        confirmation_email = EmailMessage(
-            email_subject,
-            message2,
-            settings.EMAIL_HOST_USER,
-            [myuser.email],
-        )
-        confirmation_email.fail_silently = True
-        confirmation_email.send()
-
-        return redirect("signin")
-
-    context = {"title": "Sign Up"}
-    return render(request, "homepage/accounts/signup.html", context)
+    return JsonResponse({
+        "success": True,
+        "csrftoken": get_token(request)
+    })
 
 def signup_required(view_func):
     @wraps(view_func)
@@ -120,6 +143,7 @@ def signup_required(view_func):
     return wrapper
 
 
+@csrf_protect
 def signin(request):
     if request.method == "POST":
         username = request.POST.get("username")
@@ -127,22 +151,43 @@ def signin(request):
         user = authenticate(request, username=username, password=password)
 
         if user is not None:
+            if not user.is_active:
+                return JsonResponse({
+                    "success": False,
+                    "message": "Please verify your email before logging in."
+                }, status=400)
+            
             login(request, user)
-            messages.success(request, f"Welcome {user.username}!")
-            return redirect(
-                "res.home"
-            )  # or any other page to redirect after successful login
+            return JsonResponse({
+                "success": True,
+                "message": f"Welcome {user.username}!",
+                "user": {
+                    "id": user.id,
+                    "username": user.username,
+                    "email": user.email,
+                    "first_name": user.first_name,
+                    "last_name": user.last_name,
+                }
+            })
         else:
-            messages.error(request, "Invalid username or password.")
-            return redirect("signup")  # or to your login page with an error message
-    else:
-        return redirect("res.home")  # redirect to home if method is not POST
+            return JsonResponse({
+                "success": False,
+                "message": "Invalid username or password."
+            }, status=400)
+
+    return JsonResponse({
+        "success": True,
+        "csrftoken": get_token(request)
+    })
 
 
+@csrf_protect
 def signout(request):
     logout(request)
-    messages.success(request, "Logged Out Successfully! ")
-    return redirect("res.home")
+    return JsonResponse({
+        "success": True,
+        "message": "Logged Out Successfully!"
+    })
 
 
 def activate(request, uidb64, token):
@@ -156,10 +201,11 @@ def activate(request, uidb64, token):
         myuser.is_active = True
         myuser.save()
         login(request, myuser)
-        messages.success(request, "You have successfully comfirmed your account")
-        return redirect("signin")
+        messages.success(request, "Your account has been successfully activated!")
+        return redirect("res.home")  # Redirect to home page
     else:
-        return render(request, "verification\activation_failed.html")
+        messages.error(request, "Activation failed! Please try again.")
+        return redirect("signin")  # Redirect to signin page if activation fails
 
 @signup_required
 def get_res_list(
@@ -314,3 +360,122 @@ def about(request):
 def search(request):
     context = {"title": "Search"}
     return render(request, "homepage/content/search.html", context)
+
+# API Views
+class RestaurantViewSet(viewsets.ModelViewSet):
+    queryset = Restaurant.objects.filter(approved=True)
+    serializer_class = RestaurantSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def perform_create(self, serializer):
+        serializer.save(submitted_by=self.request.user)
+
+@api_view(['GET'])
+def api_restaurants_within_radius(request):
+    """API endpoint for restaurants within radius"""
+    try:
+        user_lat = float(request.GET.get("latitude"))
+        user_lon = float(request.GET.get("longitude"))
+        radius = float(request.GET.get("radius"))  # in km
+    except (TypeError, ValueError):
+        return Response({"error": "Invalid parameters"}, status=status.HTTP_400_BAD_REQUEST)
+
+    user_location = (user_lat, user_lon)
+    restaurants = Restaurant.objects.filter(approved=True)
+    
+    filtered_restaurants = [
+        restaurant for restaurant in restaurants
+        if restaurant.latitude and restaurant.longitude
+        and geodesic(user_location, (restaurant.latitude, restaurant.longitude)).km <= radius
+    ]
+
+    serializer = RestaurantSerializer(filtered_restaurants, many=True)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+def api_nearest_restaurant(request):
+    """API endpoint for finding nearest restaurant"""
+    try:
+        user_lat = float(request.GET.get("latitude"))
+        user_lon = float(request.GET.get("longitude"))
+    except (TypeError, ValueError):
+        return Response({"error": "Invalid parameters"}, status=status.HTTP_400_BAD_REQUEST)
+
+    user_location = (user_lat, user_lon)
+    restaurants = Restaurant.objects.filter(approved=True)
+
+    if not restaurants:
+        return Response({"error": "No restaurants found"}, status=status.HTTP_404_NOT_FOUND)
+
+    nearest = min(
+        restaurants,
+        key=lambda r: geodesic(user_location, (r.latitude, r.longitude)).km if r.latitude and r.longitude else float('inf')
+    )
+
+    serializer = RestaurantSerializer(nearest)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+@ensure_csrf_cookie
+def get_auth_user(request):
+    if request.user.is_authenticated:
+        return Response({
+            'user': {
+                'id': request.user.id,
+                'username': request.user.username,
+                'email': request.user.email,
+                'first_name': request.user.first_name,
+                'last_name': request.user.last_name,
+            }
+        })
+    return Response({'user': None})
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def verify_email(request):
+    try:
+        uid = request.data.get('uid')
+        token = request.data.get('token')
+        
+        if not uid or not token:
+            return Response({
+                'success': False,
+                'message': 'Invalid verification link'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        uid = force_str(urlsafe_base64_decode(uid))
+        user = User.objects.get(pk=uid)
+        
+        if user is not None and generate_token().check_token(user, token):
+            if user.is_active:
+                return Response({
+                    'success': False,
+                    'message': 'Account is already verified'
+                })
+                
+            user.is_active = True
+            user.save()
+            login(request, user)
+            return Response({
+                'success': True,
+                'message': 'Email verified successfully',
+                'user': {
+                    'id': user.id,
+                    'username': user.username,
+                    'email': user.email,
+                    'first_name': user.first_name,
+                    'last_name': user.last_name,
+                }
+            })
+        else:
+            return Response({
+                'success': False,
+                'message': 'Invalid verification link'
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist) as e:
+        return Response({
+            'success': False,
+            'message': 'Invalid verification link'
+        }, status=status.HTTP_400_BAD_REQUEST)
