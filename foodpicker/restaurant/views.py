@@ -5,17 +5,17 @@ from django.contrib import messages
 from django.shortcuts import redirect, get_object_or_404 , render
 from django.contrib.auth.models import User
 from base import settings
-from django.core.mail import EmailMessage
+from django.core.mail import EmailMessage, send_mail
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from .tokens import generate_token
-from .models import Restaurant
+from .models import Restaurant, ContactMessage
 from .forms import RestaurantForm
 from geopy.geocoders import Nominatim
 from functools import wraps
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from geopy.distance import geodesic
 
 
@@ -198,7 +198,27 @@ def get_res_map(request):
     
     return render(request, "homepage/content/map.html", {"restaurants_json": restaurants_json})
 
-
+def featured_restaurants_api(request):
+    """API endpoint to fetch featured restaurants (top rated)."""
+    try:
+        # Get top 3 restaurants by rating that are approved
+        restaurants = Restaurant.objects.filter(approved=True).order_by('-average_rating')[:3]
+        
+        # Format the restaurant data
+        restaurant_data = []
+        for restaurant in restaurants:
+            restaurant_data.append({
+                'id': restaurant.id,
+                'name': restaurant.name,
+                'cuisine_type': restaurant.get_cuisine_type_display(),
+                'price_range': restaurant.price_range,
+                'average_rating': restaurant.average_rating,
+                'city': restaurant.city
+            })
+        
+        return JsonResponse({'restaurants': restaurant_data})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 def geocode_address(address):
     """Geocode an address using OpenStreetMap (Nominatim)."""
@@ -302,6 +322,59 @@ def nearest_restaurant(request):
     })
 
 def contact(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        email = request.POST.get('email')
+        subject = request.POST.get('subject')
+        message = request.POST.get('message')
+        
+        # Create and save the contact message
+        contact_message = ContactMessage(
+            name=name,
+            email=email,
+            subject=subject,
+            message=message
+        )
+        contact_message.save()
+        
+        # Send notification email to admin
+        try:
+            admin_email = settings.EMAIL_HOST_USER
+            email_subject = f'New Contact Message: {subject}'
+            email_body = f"""
+            You have received a new contact message from the website:
+            
+            From: {name} ({email})
+            Subject: {subject}
+            
+            Message:
+            {message}
+            
+            You can view this message in the admin panel.
+            """
+            
+            send_mail(
+                email_subject,
+                email_body,
+                settings.EMAIL_HOST_USER,
+                [admin_email],
+                fail_silently=False,
+            )
+        except Exception as e:
+            # Log the error but don't prevent the message from being saved
+            print(f"Error sending notification email: {e}")
+        
+        # Return success response for AJAX requests
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({
+                'status': 'success',
+                'message': 'Your message has been sent successfully! We will get back to you soon.'
+            })
+        
+        # Add success message for non-AJAX requests
+        messages.success(request, 'Your message has been sent successfully! We will get back to you soon.')
+        return redirect('contact')
+        
     context = {"title": "Contact"}
     return render(request, "homepage/content/contact.html", context)
 

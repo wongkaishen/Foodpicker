@@ -1,220 +1,755 @@
-{% extends 'homepage/content/main.html' %}
-{% load static %}
-
-{% block content %}
-
-<div class="all-restaurants-map">
-    {% for message in messages %}
-    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-        <strong>Messages:</strong> {{ message }}
-    </div>
-    {% endfor %}
-    
-    <h1 class="page-title">All Restaurants Map</h1>
-    
-    <div class="filter-container">
-        <label for="radiusFilter">Filter by distance:</label>
-        <select id="radiusFilter">
-            <option value="2">2 km</option>
-            <option value="5" selected>5 km</option>
-            <option value="10">10 km</option>
-            <option value="15">15 km</option>
-            <option value="20">20 km</option>
-        </select>
-        <span id="loadingIndicator" class="hidden">Loading...</span>
-    </div>
-
-    <div id="map"></div>
-</div>
-
-<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+{% extends 'homepage/content/main.html' %} {% load static %} {% block content %}
 
 <style>
+  .all-restaurants-map {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 1.5rem;
+    background: #fff;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    text-align: center;
+  }
+
+  .page-title {
+    font-size: 2.2rem;
+    color: #333;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+  }
+
+  .map-subtitle {
+    color: #666;
+    margin-bottom: 1.5rem;
+    font-size: 1.1rem;
+  }
+
+  .map-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .filter-container {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .filter-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .filter-group label {
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 0;
+  }
+
+  .form-select {
+    padding: 8px 12px;
+    font-size: 0.95rem;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    background-color: #f9f9f9;
+    min-width: 120px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .form-select:hover,
+  .form-select:focus {
+    border-color: #04aa6d;
+    box-shadow: 0 0 0 2px rgba(4, 170, 109, 0.1);
+  }
+
+  .map-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .action-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background-color: #04aa6d;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+
+  .action-btn {
+    background-color: #2563eb;
+    border: none;
+    color: white;
+    transition: all 0.3s ease;
+  }
+  .action-btn:hover {
+    background-color: #1d4ed8;
+  }
+
+  .loading-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    background-color: #f5f5f5;
+    border-radius: 8px;
+  }
+
+  .loading-spinner {
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #04aa6d;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  .loading-text {
+    color: #555;
+    font-weight: 500;
+  }
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+  .hidden {
+    display: none;
+  }
+
+  #map {
+    height: 650px;
+    width: 100%;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1rem;
+  }
+
+  .map-legend {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-top: 1rem;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .legend-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+  }
+
+  .user-icon {
+    background-color: #2563eb;
+    border: 2px solid white;
+  }
+
+  .restaurant-icon {
+    background-color: #04aa6d;
+    border: 2px solid white;
+  }
+
+  .popup-content {
+    font-size: 0.95rem;
+    color: #444;
+    padding: 0.25rem;
+  }
+
+  .popup-header {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #222;
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 0.5rem;
+  }
+
+  .popup-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .popup-info-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .popup-info-item i {
+    color: #04aa6d;
+    font-size: 0.9rem;
+  }
+
+  .details-link {
+    display: inline-block;
+    width: 100%;
+    text-align: center;
+    margin-top: 0.5rem;
+    text-decoration: none;
+    color: white;
+    font-weight: 600;
+    background-color: #04aa6d;
+    padding: 8px 12px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    border: none;
+  }
+
+  .details-link:hover {
+    background-color: #038f5a;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Responsive styles */
+  @media (max-width: 768px) {
     .all-restaurants-map {
-        max-width: 1200px;
-        margin: 2rem auto;
-        padding: 1.5rem;
-        background: #fff;
-        border-radius: 10px;
-        box-shadow: 0 5px 8px rgba(0, 0, 0, 0.1);
-        text-align: center;
+      padding: 1rem;
+      margin: 1rem;
     }
 
     .page-title {
-        font-size: 2rem;
-        color: #333;
-        margin-bottom: 1rem;
+      font-size: 1.8rem;
+    }
+
+    .map-subtitle {
+      font-size: 1rem;
+    }
+
+    .map-controls {
+      flex-direction: column;
+      align-items: stretch;
     }
 
     .filter-container {
-        margin-bottom: 1rem;
+      flex-direction: column;
+      width: 100%;
     }
 
-    #radiusFilter {
-        padding: 5px 10px;
-        font-size: 1rem;
-        border-radius: 5px;
-        border: 1px solid #ccc;
-        margin-left: 5px;
+    .filter-group {
+      width: 100%;
     }
 
-    #loadingIndicator {
-        margin-left: 10px;
-        color: #666;
-        font-style: italic;
+    .form-select {
+      width: 100%;
     }
 
-    .hidden {
-        display: none;
+    .map-actions {
+      justify-content: center;
+      margin-top: 1rem;
     }
 
     #map {
-        height: 650px;
-        width: 100%;
-        border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      height: 450px;
     }
-
-    .popup-content {
-        font-size: 0.9rem;
-        color: #444;
-    }
-
-    .popup-content b {
-        font-size: 1rem;
-        color: #222;
-    }
-
-    .details-link {
-        display: inline-block;
-        margin-top: 0.5rem;
-        text-decoration: none;
-        color: #04AA6D;
-        font-weight: bold;
-        border: 1px solid #04AA6D;
-        padding: 5px 10px;
-        border-radius: 4px;
-        transition: background-color 0.3s ease, color 0.3s ease;
-    }
-
-    .details-link:hover {
-        background-color: #04AA6D;
-        color: #fff;
-    }
+  }
 </style>
 
+<div class="all-restaurants-map">
+  {% for message in messages %}
+  <div
+    class="alert alert-{{ message.tags }} alert-dismissible fade show"
+    role="alert"
+  >
+    <strong>Messages:</strong> {{ message }}
+    <button
+      type="button"
+      class="btn-close"
+      data-bs-dismiss="alert"
+      aria-label="Close"
+    ></button>
+  </div>
+  {% endfor %}
+
+  <h1 class="page-title">Discover Restaurants Near You</h1>
+  <p class="map-subtitle">
+    Explore dining options in your area and find your next favorite spot
+  </p>
+
+  <div class="map-controls">
+    <div class="filter-container">
+      <div class="filter-group">
+        <label for="radiusFilter">Distance:</label>
+        <select id="radiusFilter" class="form-select">
+          <option value="2">2 km</option>
+          <option value="5" selected>5 km</option>
+          <option value="10">10 km</option>
+          <option value="15">15 km</option>
+          <option value="20">20 km</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="cuisineFilter">Cuisine:</label>
+        <select id="cuisineFilter" class="form-select">
+          <option value="all" selected>All Cuisines</option>
+          <option value="chinese">Chinese</option>
+          <option value="western">Western</option>
+          <option value="japanese">Japanese</option>
+          <option value="korean">Korean</option>
+          <option value="thai">Thai</option>
+          <option value="indian">Indian</option>
+          <option value="malaysian">Malaysian</option>
+          <option value="fusion">Fusion</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="priceFilter">Price:</label>
+        <select id="priceFilter" class="form-select">
+          <option value="all" selected>All Prices</option>
+          <option value="$">$ (Under RM20)</option>
+          <option value="$$">$$ (RM20-50)</option>
+          <option value="$$$">$$$ (RM50-100)</option>
+          <option value="$$$$">$$$$ (Above RM100)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="map-actions">
+      <button
+        id="refreshLocationBtn"
+        class="action-btn"
+        title="Refresh Your Location"
+      >
+        <i class="ri-refresh-line"></i>
+      </button>
+      <button
+        id="findNearestBtn"
+        class="action-btn"
+        title="Find Nearest Restaurant"
+      >
+        <i class="ri-compass-3-line"></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="loading-container hidden" id="loadingContainer">
+    <div class="loading-spinner"></div>
+    <span class="loading-text">Finding restaurants near you...</span>
+  </div>
+
+  <div id="map"></div>
+
+  <div class="map-legend">
+    <div class="legend-item">
+      <div class="legend-icon user-icon"></div>
+      <span>Your Location</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-icon restaurant-icon"></div>
+      <span>Restaurant</span>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+/>
+<link
+  href="https://unpkg.com/remixicon@2.5.0/fonts/remixicon.css"
+  rel="stylesheet"
+/>
+
 <script>
-    let map;
-    let userMarker;
-    let restaurantMarkers = [];
-    let userLat, userLon;
-    const radiusFilter = document.getElementById("radiusFilter");
-    const loadingIndicator = document.getElementById("loadingIndicator");
+  let map;
+  let userMarker;
+  let restaurantMarkers = [];
+  let userLat, userLon;
+  const radiusFilter = document.getElementById("radiusFilter");
+  const cuisineFilter = document.getElementById("cuisineFilter");
+  const priceFilter = document.getElementById("priceFilter");
+  const loadingContainer = document.getElementById("loadingContainer");
+  const refreshLocationBtn = document.getElementById("refreshLocationBtn");
+  const findNearestBtn = document.getElementById("findNearestBtn");
 
-    function initializeMap(lat, lon) {
-        map = L.map('map').setView([lat, lon], 14);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors'
+  // Custom icons
+  const userIcon = L.divIcon({
+    className: "custom-div-icon",
+    html: `<div style="background-color:#2563eb; width:20px; height:20px; border-radius:50%; border:3px solid white;"></div>`,
+    iconSize: [20, 20],
+    iconAnchor: [10, 10],
+  });
+
+  const restaurantIcon = L.divIcon({
+    className: "custom-div-icon",
+    html: `<div style="background-color:#04AA6D; width:20px; height:20px; border-radius:50%; border:3px solid white;"></div>`,
+    iconSize: [20, 20],
+    iconAnchor: [10, 10],
+  });
+
+  function initializeMap(lat, lon) {
+    map = L.map("map", {
+      zoomControl: false,
+    }).setView([lat, lon], 14);
+
+    // Add custom tile layer with better styling
+    L.tileLayer(
+      "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+      {
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: "abcd",
+        maxZoom: 19,
+      }
+    ).addTo(map);
+
+    // Add zoom control to top-right
+    L.control
+      .zoom({
+        position: "topright",
+      })
+      .addTo(map);
+
+    userMarker = L.marker([lat, lon], { icon: userIcon })
+      .addTo(map)
+      .bindPopup("<b>Your Location</b>")
+      .openPopup();
+  }
+
+  function updateMap(lat, lon) {
+    if (!map) initializeMap(lat, lon);
+    map.setView([lat, lon], 14);
+    if (userMarker) map.removeLayer(userMarker);
+    userMarker = L.marker([lat, lon], { icon: userIcon })
+      .addTo(map)
+      .bindPopup("<b>Your Location</b>")
+      .openPopup();
+  }
+
+  async function fetchRestaurants(radius, cuisine = "all", price = "all") {
+    if (!userLat || !userLon) {
+      console.log("User location not available.");
+      return;
+    }
+
+    loadingContainer.classList.remove("hidden");
+
+    try {
+      const response = await fetch(
+        `/restaurants_within_radius/?latitude=${userLat}&longitude=${userLon}&radius=${radius}&cuisine=${cuisine}&price=${price}`
+      );
+      const data = await response.json();
+
+      if (data.error) {
+        showNotification(data.error, "error");
+        return;
+      }
+
+      restaurantMarkers.forEach((marker) => map.removeLayer(marker));
+      restaurantMarkers = [];
+
+      if (data.restaurants.length === 0) {
+        showNotification(
+          "No restaurants found with the selected filters. Try expanding your search.",
+          "info"
+        );
+      } else {
+        showNotification(
+          `Found ${data.restaurants.length} restaurants within ${radius}km.`,
+          "success"
+        );
+      }
+
+      data.restaurants.forEach((restaurant) => {
+        const marker = L.marker([restaurant.latitude, restaurant.longitude], {
+          icon: restaurantIcon,
         }).addTo(map);
-
-        userMarker = L.marker([lat, lon]).addTo(map)
-            .bindPopup("<b>Your Location</b>")
-            .openPopup();
-    }
-
-    function updateMap(lat, lon) {
-        if (!map) initializeMap(lat, lon);
-        map.setView([lat, lon], 14);
-        if (userMarker) map.removeLayer(userMarker);
-        userMarker = L.marker([lat, lon]).addTo(map)
-            .bindPopup("<b>Your Location</b>")
-            .openPopup();
-    }
-
-    async function fetchRestaurants(radius) {
-        if (!userLat || !userLon) {
-            console.log("User location not available.");
-            return;
-        }
-
-        loadingIndicator.classList.remove("hidden");
-
-        try {
-            const response = await fetch(`/restaurants_within_radius/?latitude=${userLat}&longitude=${userLon}&radius=${radius}`);
-            const data = await response.json();
-
-            if (data.error) return alert(data.error);
-
-            restaurantMarkers.forEach(marker => map.removeLayer(marker));
-            restaurantMarkers = [];
-
-            data.restaurants.forEach(restaurant => {
-                const marker = L.marker([restaurant.latitude, restaurant.longitude]).addTo(map);
-                marker.bindPopup(`
+        marker.bindPopup(`
                     <div class="popup-content">
-                        <b>${restaurant.name}</b><br>
-                        Open: ${restaurant.opentime} - ${restaurant.closetime}<br>
-                        Distance: ${restaurant.distance_km.toFixed(2)} km<br>
-                        <a href="/restaurant/${restaurant.id}/" class="details-link">View Details</a>
+                        <div class="popup-header">${restaurant.name}</div>
+                        <div class="popup-info">
+                            <div class="popup-info-item">
+                                <i class="ri-time-line"></i>
+                                <span>Open: ${restaurant.opentime} - ${
+          restaurant.closetime
+        }</span>
+                            </div>
+                            <div class="popup-info-item">
+                                <i class="ri-map-pin-line"></i>
+                                <span>Distance: ${restaurant.distance_km.toFixed(
+                                  2
+                                )} km</span>
+                            </div>
+                            <div class="popup-info-item">
+                                <i class="ri-restaurant-line"></i>
+                                <span>Cuisine: ${
+                                  restaurant.cuisine_type || "Various"
+                                }</span>
+                            </div>
+                            <div class="popup-info-item">
+                                <i class="ri-money-dollar-circle-line"></i>
+                                <span>Price: ${
+                                  restaurant.price_range || "Various"
+                                }</span>
+                            </div>
+                        </div>
+                        <a href="/restaurant/${
+                          restaurant.id
+                        }/" class="details-link">View Details</a>
                     </div>
                 `);
-                restaurantMarkers.push(marker);
-            });
-        } catch (error) {
-            console.error("Error fetching restaurants:", error);
-        } finally {
-            loadingIndicator.classList.add("hidden");
+        restaurantMarkers.push(marker);
+      });
+    } catch (error) {
+      console.error("Error fetching restaurants:", error);
+      showNotification("Error loading restaurants. Please try again.", "error");
+    } finally {
+      loadingContainer.classList.add("hidden");
+    }
+  }
+
+  async function fetchNearestRestaurant() {
+    if (!userLat || !userLon) return;
+
+    loadingContainer.classList.remove("hidden");
+
+    try {
+      const response = await fetch(
+        `/nearest_restaurant?latitude=${userLat}&longitude=${userLon}`
+      );
+      const data = await response.json();
+
+      if (data.error) {
+        showNotification(data.error, "error");
+        return;
+      }
+
+      // Create a notification instead of an alert
+      showNotification(
+        `Nearest restaurant: ${data.name}, Distance: ${data.distance_km.toFixed(
+          2
+        )} km`,
+        "success"
+      );
+
+      // Center map on the nearest restaurant
+      map.setView([data.latitude, data.longitude], 15);
+
+      // Highlight the restaurant
+      const marker = restaurantMarkers.find(
+        (m) =>
+          m.getLatLng().lat === data.latitude &&
+          m.getLatLng().lng === data.longitude
+      );
+
+      if (marker) {
+        marker.openPopup();
+      }
+    } catch (error) {
+      console.error("Error fetching nearest restaurant:", error);
+      showNotification(
+        "Error finding nearest restaurant. Please try again.",
+        "error"
+      );
+    } finally {
+      loadingContainer.classList.add("hidden");
+    }
+  }
+
+  function showNotification(message, type = "info") {
+    // Create notification element
+    const notification = document.createElement("div");
+    notification.className = `notification notification-${type}`;
+    notification.innerHTML = `
+            <div class="notification-content">
+                <i class="ri-${
+                  type === "success"
+                    ? "check-line"
+                    : type === "error"
+                    ? "error-warning-line"
+                    : "information-line"
+                }"></i>
+                <span>${message}</span>
+            </div>
+            <button class="notification-close">×</button>
+        `;
+
+    document.body.appendChild(notification);
+
+    // Add styles if not already added
+    if (!document.getElementById("notification-styles")) {
+      const style = document.createElement("style");
+      style.id = "notification-styles";
+      style.innerHTML = `
+                .notification {
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    padding: 12px 20px;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                    z-index: 9999;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    min-width: 300px;
+                    max-width: 450px;
+                    animation: slide-in 0.3s ease-out forwards;
+                }
+                
+                .notification-content {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                }
+                
+                .notification-success {
+                    background-color: #ecfdf5;
+                    border-left: 4px solid #04AA6D;
+                    color: #065f46;
+                }
+                
+                .notification-error {
+                    background-color: #fef2f2;
+                    border-left: 4px solid #ef4444;
+                    color: #991b1b;
+                }
+                
+                .notification-info {
+                    background-color: #eff6ff;
+                    border-left: 4px solid #3b82f6;
+                    color: #1e40af;
+                }
+                
+                .notification-close {
+                    background: none;
+                    border: none;
+                    font-size: 18px;
+                    cursor: pointer;
+                    color: inherit;
+                    opacity: 0.7;
+                }
+                
+                .notification-close:hover {
+                    opacity: 1;
+                }
+                
+                @keyframes slide-in {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+                
+                @keyframes slide-out {
+                    from { transform: translateX(0); opacity: 1; }
+                    to { transform: translateX(100%); opacity: 0; }
+                }
+            `;
+      document.head.appendChild(style);
+    }
+
+    // Add close button functionality
+    const closeBtn = notification.querySelector(".notification-close");
+    closeBtn.addEventListener("click", () => {
+      notification.style.animation = "slide-out 0.3s ease-in forwards";
+      setTimeout(() => {
+        notification.remove();
+      }, 300);
+    });
+
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+      if (document.body.contains(notification)) {
+        notification.style.animation = "slide-out 0.3s ease-in forwards";
+        setTimeout(() => {
+          if (document.body.contains(notification)) {
+            notification.remove();
+          }
+        }, 300);
+      }
+    }, 5000);
+  }
+
+  function handleLocationSuccess(position) {
+    userLat = position.coords.latitude;
+    userLon = position.coords.longitude;
+
+    updateMap(userLat, userLon);
+    fetchRestaurants(
+      radiusFilter.value,
+      cuisineFilter.value,
+      priceFilter.value
+    );
+  }
+
+  function handleLocationError(error) {
+    console.error("Geolocation error:", error);
+    showNotification(
+      "Unable to get your location. Please enable location services.",
+      "error"
+    );
+    initializeMap(2.9252, 101.6414); // Default fallback location
+  }
+
+  function getUserLocation() {
+    loadingContainer.classList.remove("hidden");
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        handleLocationSuccess,
+        handleLocationError,
+        {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0,
         }
+      );
+    } else {
+      showNotification(
+        "Geolocation is not supported by your browser.",
+        "error"
+      );
+      initializeMap(2.9252, 101.6414); // Fallback location
+      loadingContainer.classList.add("hidden");
     }
+  }
 
-    async function fetchNearestRestaurant() {
-        if (!userLat || !userLon) return;
+  // Event listeners
+  radiusFilter.addEventListener("change", () =>
+    fetchRestaurants(radiusFilter.value, cuisineFilter.value, priceFilter.value)
+  );
 
-        try {
-            const response = await fetch(`/nearest_restaurant?latitude=${userLat}&longitude=${userLon}`);
-            const data = await response.json();
+  cuisineFilter.addEventListener("change", () =>
+    fetchRestaurants(radiusFilter.value, cuisineFilter.value, priceFilter.value)
+  );
 
-            if (data.error) return alert(data.error);
+  priceFilter.addEventListener("change", () =>
+    fetchRestaurants(radiusFilter.value, cuisineFilter.value, priceFilter.value)
+  );
 
-            console.log("Nearest Restaurant:", data);
-            alert(`Nearest restaurant: ${data.name}, Distance: ${data.distance_km.toFixed(2)} km`);
-        } catch (error) {
-            console.error("Error fetching nearest restaurant:", error);
-        }
-    }
+  refreshLocationBtn.addEventListener("click", getUserLocation);
+  findNearestBtn.addEventListener("click", fetchNearestRestaurant);
 
-    function handleLocationSuccess(position) {
-        userLat = position.coords.latitude;
-        userLon = position.coords.longitude;
-
-        updateMap(userLat, userLon);
-        fetchNearestRestaurant();
-        fetchRestaurants(radiusFilter.value);
-    }
-
-    function handleLocationError(error) {
-        console.error("Geolocation error:", error);
-        alert("Unable to get your location. Please enable location services.");
-        initializeMap(2.9252, 101.6414); // Default fallback location
-    }
-
-    function getUserLocation() {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(handleLocationSuccess, handleLocationError, {
-                enableHighAccuracy: true, 
-                timeout: 5000, 
-                maximumAge: 0 
-            });
-        } else {
-            alert("Geolocation is not supported by your browser.");
-            initializeMap(2.9252, 101.6414); // Fallback location
-        }
-    }
-
-    radiusFilter.addEventListener("change", () => fetchRestaurants(radiusFilter.value));
-
-    getUserLocation();
+  // Initialize
+  getUserLocation();
 </script>
 
 {% endblock %}
