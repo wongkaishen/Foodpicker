@@ -9,13 +9,13 @@ class RestaurantForm(forms.ModelForm):
         fields = [
             'name', 'description', 'cuisine_type', 
             'phone', 'email', 'website',
-            'price_range', 'opentime', 'closetime',
+            'price_range','average_rating', 'opentime', 'closetime',
             'delivery_available', 'takeout_available',
             'latitude', 'longitude', 'street_address', 'city', 
             'state', 'postal_code', 'country',
         ]
         # Exclude auto-generated fields and fields that should be managed by admin
-        exclude = ['id', 'average_rating', 'created_at', 'updated_at', 'approved', 'submitted_by']
+        exclude = ['id', 'created_at', 'updated_at', 'approved', 'submitted_by']
 
     def clean(self):
         cleaned_data = super().clean()

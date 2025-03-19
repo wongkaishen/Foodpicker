@@ -432,7 +432,7 @@
                 <select class="filter-select" id="cuisineFilter">
                     <option value="">All Cuisines</option>
                     {% for code, name in cuisine_choices %}
-                        <option value="{{ code }}">{{ name }}</option>
+                        <option value="{{ code }}">{{ name }}</option> <!-- Ensure correct value is sent -->
                     {% endfor %}
                 </select>
 
@@ -446,7 +446,7 @@
                 <select class="filter-select" id="sortBy">
                     <option value="rating">Sort by Rating</option>
                     <option value="name">Sort by Name</option>
-                    <option value="price">Sort by Price</option>
+                    <option value="price">Sort by Price</option> <!-- Ensure correct value is sent -->
                 </select>
 
                 <label class="filter-switch">
@@ -575,8 +575,9 @@
         // Function to filter restaurants
         const filterRestaurants = debounce(function() {
             const searchTerm = searchInput.value.toLowerCase();
-            const cuisineValue = cuisineFilter.value;
+            const cuisineValue = cuisineFilter.value;  // Capture cuisine filter value
             const priceValue = priceFilter.value;
+            const sortByValue = sortBy.value;  // Capture sortBy filter value
             const deliveryChecked = deliveryFilter.checked;
             const takeoutChecked = takeoutFilter.checked;
             
@@ -681,6 +682,72 @@
         sortBy.addEventListener('change', filterRestaurants);
         deliveryFilter.addEventListener('change', filterRestaurants);
         takeoutFilter.addEventListener('change', filterRestaurants);
+    });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const cuisineFilter = document.getElementById('cuisineFilter');
+        const sortBy = document.getElementById('sortBy');
+        const restaurantResults = document.getElementById('restaurantResults');
+        const loadingContainer = document.getElementById('loadingContainer');
+
+        // Function to fetch filtered restaurants
+        function fetchRestaurants() {
+            const cuisineValue = cuisineFilter.value;
+            const sortByValue = sortBy.value;
+
+            // Show loading state
+            loadingContainer.style.display = 'flex';
+            restaurantResults.style.opacity = '0.5';
+
+            // Fetch data from the server
+            const params = new URLSearchParams({
+                cuisine: cuisineValue,
+                sort_by: sortByValue,
+            });
+
+            fetch(`/get_res_list/?${params.toString()}`, {
+                headers: { 'x-requested-with': 'XMLHttpRequest' }
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Update the restaurant results
+                restaurantResults.innerHTML = data.restaurants.map(r => `
+                    <div class="restaurant-card">
+                        <div class="restaurant-image" style="background-image: url('/static/img/restaurant-placeholder.jpg')">
+                            <span class="price-badge">${r.price_range}</span>
+                        </div>
+                        <div class="restaurant-info">
+                            <a href="/restaurant/${r.id}/" class="restaurant-name">${r.name}</a>
+                            <div class="restaurant-meta">
+                                <span class="cuisine-type">${r.cuisine_type}</span>
+                                <span class="rating">
+                                    <i class="ri-star-fill"></i> ${r.average_rating.toFixed(1)}
+                                </span>
+                            </div>
+                            <p class="restaurant-description">${r.description}</p>
+                            <div class="restaurant-footer">
+                                ${r.delivery_available ? '<span class="feature-badge"><i class="ri-bike-line"></i> Delivery</span>' : ''}
+                                ${r.takeout_available ? '<span class="feature-badge"><i class="ri-shopping-bag-line"></i> Takeout</span>' : ''}
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                // Hide loading state
+                loadingContainer.style.display = 'none';
+                restaurantResults.style.opacity = '1';
+            })
+            .catch(error => {
+                console.error('Error fetching restaurants:', error);
+                loadingContainer.style.display = 'none';
+                restaurantResults.style.opacity = '1';
+            });
+        }
+
+        // Add event listeners to filters
+        cuisineFilter.addEventListener('change', fetchRestaurants);
+        sortBy.addEventListener('change', fetchRestaurants);
     });
 </script>
 {% endblock %}

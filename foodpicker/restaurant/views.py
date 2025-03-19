@@ -11,7 +11,7 @@ from django.template.loader import render_to_string
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from .tokens import generate_token
-from .models import Restaurant, ContactMessage
+from .models import Restaurant, ContactMessage, ApprovedRestaurant
 from .forms import RestaurantForm
 from geopy.geocoders import Nominatim
 from functools import wraps
@@ -162,19 +162,58 @@ def activate(request, uidb64, token):
         return render(request, "verification\activation_failed.html")
 
 @signup_required
-def get_res_list(
-    request,
-):  # used to show the restaurnt id or sort out the restaurant using id's
-    restaurants = Restaurant.objects.all()
+def get_res_list(request):
+    cuisine_filter = request.GET.get("cuisine", "")
+    price_filter = request.GET.get("price", "")
+    sort_by = request.GET.get("sort_by", "rating")  # Default to rating
+
+    # Fetch all approved restaurants
+    restaurants = ApprovedRestaurant.objects.all()
+
+    # Apply filters
+    if cuisine_filter:
+        restaurants = restaurants.filter(cuisine_type=cuisine_filter)  # Ensure correct field name is used
+    if price_filter:
+        restaurants = restaurants.filter(price_range=price_filter)
+
+    # Apply sorting
+    sorting_options = {
+        "rating": "-average_rating",  # Highest rating first
+        "name": "name",  # Alphabetical order
+        "price": "price_range",  # Lower price first
+    }
+    restaurants = restaurants.order_by(sorting_options.get(sort_by, "-average_rating"))  # Default to rating
+
+    # If it's an AJAX request, return JSON data
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        restaurant_data = [
+            {
+                "id": r.id,
+                "name": r.name,
+                "cuisine_type": r.get_cuisine_type_display(),  # Use display text for cuisine type
+                "price_range": r.get_price_range_display(),  # Use display text for price range
+                "average_rating": r.average_rating,
+                "description": r.description,
+                "delivery_available": r.delivery_available,
+                "takeout_available": r.takeout_available,
+            }
+            for r in restaurants
+        ]
+        return JsonResponse({"restaurants": restaurant_data})
+
+    # Regular page load
     context = {
         "restaurants": restaurants,
         "title": "Restaurant",
+        "price_choices": Restaurant.PRICE_CHOICES,
+        "cuisine_choices": Restaurant.CUISINE_CHOICES,
     }
     return render(request, "homepage/content/res.html", context)
 
+
 @signup_required
 def get_res_detail(request, id):
-    restaurant = get_object_or_404(Restaurant, id=id)
+    restaurant = get_object_or_404(ApprovedRestaurant, id=id)
     return render(
         request, "homepage/content/restaurant_detail.html", {"restaurant": restaurant}
     )
@@ -183,7 +222,16 @@ def get_res_detail(request, id):
 
 def get_res_map(request):
     """Render the restaurant map view with approved restaurant data."""
+    cuisine_filter = request.GET.get("cuisine")
+    price_filter = request.GET.get("price")
+    
     restaurants = Restaurant.objects.filter(approved=True)  # Only approved restaurants
+    
+    if cuisine_filter:
+        restaurants = restaurants.filter(cuisine_type=cuisine_filter)
+    if price_filter:
+        restaurants = restaurants.filter(price_range=price_filter)
+    
     restaurants_json = json.dumps([
         {
             "id": r.id,
@@ -196,7 +244,12 @@ def get_res_map(request):
         for r in restaurants if r.latitude and r.longitude
     ])
     
-    return render(request, "homepage/content/map.html", {"restaurants_json": restaurants_json})
+    context = {
+        "restaurants_json": restaurants_json,
+        'price_choices': Restaurant.PRICE_CHOICES,
+        'cuisine_choices': Restaurant.CUISINE_CHOICES,
+    }
+    return render(request, "homepage/content/map.html", context)
 
 def featured_restaurants_api(request):
     """API endpoint to fetch featured restaurants (top rated)."""
@@ -206,14 +259,14 @@ def featured_restaurants_api(request):
         
         # Format the restaurant data
         restaurant_data = []
-        for restaurant in restaurants:
+        for ApprovedRestaurant in restaurants:
             restaurant_data.append({
-                'id': restaurant.id,
-                'name': restaurant.name,
-                'cuisine_type': restaurant.get_cuisine_type_display(),
-                'price_range': restaurant.price_range,
-                'average_rating': restaurant.average_rating,
-                'city': restaurant.city
+                'id': ApprovedRestaurant.id,
+                'name': ApprovedRestaurant.name,
+                'cuisine_type': ApprovedRestaurant.get_cuisine_type_display(),
+                'price_range': ApprovedRestaurant.price_range,
+                'average_rating': ApprovedRestaurant.average_rating,
+                'city': ApprovedRestaurant.city
             })
         
         return JsonResponse({'restaurants': restaurant_data})
@@ -238,7 +291,7 @@ def restaurants_within_radius(request):
         return JsonResponse({"error": "Invalid parameters"}, status=400)
 
     user_location = (user_lat, user_lon)
-    restaurants = Restaurant.objects.all()
+    restaurants = ApprovedRestaurant.objects.all()
     
     filtered_restaurants = [
         {
@@ -288,7 +341,7 @@ def location_view(request):
             return render(
                 request,
                 "homepage/content/form_success.html",
-                {"message": "Restaurant submitted for approval!"},
+                messages.success(request, "Location Submitted Successfully ")
             )
     else:
         form = RestaurantForm()
@@ -307,7 +360,7 @@ def nearest_restaurant(request):
         return JsonResponse({"error": "User location required"}, status=400)
 
     user_location = (float(user_lat), float(user_lon))
-    restaurants = Restaurant.objects.all()
+    restaurants = ApprovedRestaurant.objects.all()
 
     nearest = min(
         restaurants,

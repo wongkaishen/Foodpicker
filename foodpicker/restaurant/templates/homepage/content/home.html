@@ -1,22 +1,35 @@
 {% extends 'homepage/content/main.html' %}
-
-
 {% load static %}
 
-
 {% block content %}
+<div id="notification-container"></div>
 
 {% for message in messages %}
-<div class="alert alert-{{message.tags}} alert-dismissible fade show" role="alert">
-    <strong>Messages:</strong> {{message}}
-    <button type="button" class="button" data-dismiss="alert" aria-label="Close">
-        <span aria-hidden="true">&times;</span>
-    </button>
-</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const notificationContainer = document.getElementById('notification-container');
+        const notification = document.createElement('div');
+        notification.className = `notification notification-{{ message.tags }}`;
+        notification.innerHTML = `
+            <strong>Message:</strong> {{ message }}
+            <button class="close-notification">&times;</button>
+        `;
 
+        // Add close functionality
+        notification.querySelector('.close-notification').addEventListener('click', () => {
+            notification.style.opacity = 0;
+            setTimeout(() => notification.remove(), 500);
+        });
 
+        // Auto-hide after 5 seconds
+        setTimeout(() => {
+            notification.style.opacity = 0;
+            setTimeout(() => notification.remove(), 500);
+        }, 5000);
 
-
+        notificationContainer.appendChild(notification);
+    });
+</script>
 {% endfor %}
 
 <!-- Hero Section -->
@@ -90,12 +103,12 @@
 <style>
     /* Hero Section */
     .hero-section {
-        background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('{% static "img/hero-bg.jpg" %}');
+        background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),url('{% static "img/hero-bg.png" %}');
         background-size: cover;
         background-position: center;
         color: white;
         text-align: center;
-        padding: 100px 20px;
+        padding: 300px 20px;
         margin-bottom: 3rem;
     }
 
@@ -342,6 +355,69 @@
             grid-template-columns: 1fr;
         }
     }
+
+    .message-popup {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1050;
+        max-width: 300px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    #notification-container {
+        position: fixed;
+        top: 100px;
+        right: 20px;
+        z-index: 1050;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        max-width: 300px;
+        z-index: 0;
+    }
+
+    .notification {
+        background-color: #f8f9fa;
+        color: #212529;
+        padding: 25px;
+        border-radius: 5px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: opacity 0.5s ease;
+        opacity: 1;
+        position: relative;
+    }
+
+    .notification-success {
+        border-left: 5px solid #28a745;
+    }
+
+    .notification-error {
+        border-left: 5px solid #dc3545;
+    }
+
+    .notification-info {
+        border-left: 5px solid #17a2b8;
+    }
+
+    .notification-warning {
+        border-left: 5px solid #ffc107;
+    }
+
+    .close-notification {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: none;
+        border: none;
+        font-size: 16px;
+        cursor: pointer;
+        color: #212529;
+    }
+
+    .close-notification:hover {
+        color: #000;
+    }
 </style>
 
 <!-- JavaScript for Featured Restaurants -->
@@ -366,6 +442,20 @@
                     </div>
                 `;
             });
+
+        const messagePopups = document.querySelectorAll('.message-popup');
+        messagePopups.forEach(popup => {
+            // Show the popup with a fade-in effect
+            popup.style.opacity = 0;
+            popup.style.transition = 'opacity 0.5s';
+            setTimeout(() => popup.style.opacity = 1, 100);
+
+            // Automatically hide the popup after 5 seconds
+            setTimeout(() => {
+                popup.style.opacity = 0;
+                setTimeout(() => popup.remove(), 500); // Remove the element after fade-out
+            }, 5000);
+        });
     });
 
     function displayFeaturedRestaurants(restaurants) {

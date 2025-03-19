@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import Restaurant, ContactMessage
+from .models import Restaurant, ContactMessage, ApprovedRestaurant
 
 @admin.register(Restaurant)
 class RestaurantAdmin(admin.ModelAdmin):
@@ -10,7 +10,6 @@ class RestaurantAdmin(admin.ModelAdmin):
         'price_range',
         'display_rating',
         'city',
-        'is_open_24_hours',
         'approved',
         'display_contact',
         'submitted_by',
@@ -22,7 +21,6 @@ class RestaurantAdmin(admin.ModelAdmin):
         'price_range',
         'delivery_available',
         'takeout_available',
-        'is_active',
         'city',
     )
     
@@ -76,7 +74,6 @@ class RestaurantAdmin(admin.ModelAdmin):
         ('Meta Information', {
             'fields': (
                 'approved',
-                'is_active',
                 'submitted_by',
                 ('created_at', 'updated_at'),
             ),
@@ -84,7 +81,7 @@ class RestaurantAdmin(admin.ModelAdmin):
         }),
     )
     
-    actions = ['approve_restaurants', 'deactivate_restaurants', 'activate_restaurants']
+    actions = ['approve_restaurants']
     
     def display_rating(self, obj):
         """Display rating with stars"""
@@ -105,23 +102,16 @@ class RestaurantAdmin(admin.ModelAdmin):
     display_contact.short_description = 'Contact'
     
     def approve_restaurants(self, request, queryset):
-        """Approve selected restaurants"""
-        updated = queryset.update(approved=True)
-        self.message_user(request, f'{updated} restaurant(s) were successfully approved.')
+        """Approve selected restaurants and move them to ApprovedRestaurant."""
+        approved_count = 0
+        for restaurant in queryset:
+            if not restaurant.approved:
+                restaurant.approve()
+                approved_count += 1
+        self.message_user(request, f'{approved_count} restaurant(s) were successfully approved and moved to Approved Restaurants.')
     approve_restaurants.short_description = 'Approve selected restaurants'
     
-    def deactivate_restaurants(self, request, queryset):
-        """Deactivate selected restaurants"""
-        updated = queryset.update(is_active=False)
-        self.message_user(request, f'{updated} restaurant(s) were successfully deactivated.')
-    deactivate_restaurants.short_description = 'Deactivate selected restaurants'
     
-    def activate_restaurants(self, request, queryset):
-        """Activate selected restaurants"""
-        updated = queryset.update(is_active=True)
-        self.message_user(request, f'{updated} restaurant(s) were successfully activated.')
-    activate_restaurants.short_description = 'Activate selected restaurants'
-
 class ContactMessageAdmin(admin.ModelAdmin):
     list_display = ('name', 'email', 'subject', 'created_at', 'is_read')
     list_filter = ('is_read', 'created_at')
@@ -139,4 +129,30 @@ class ContactMessageAdmin(admin.ModelAdmin):
     mark_as_unread.short_description = "Mark selected messages as unread"
 
 admin.site.register(ContactMessage, ContactMessageAdmin)
+
+# Register ApprovedRestaurant in the admin panel
+@admin.register(ApprovedRestaurant)
+class ApprovedRestaurantAdmin(admin.ModelAdmin):
+    list_display = (
+        'name',
+        'cuisine_type',
+        'price_range',
+        'average_rating',
+        'city',
+        'submitted_by',
+    )
+    search_fields = (
+        'name',
+        'description',
+        'street_address',
+        'city',
+        'state',
+        'country',
+        'submitted_by__username',
+    )
+    readonly_fields = (
+        'created_at',
+        'updated_at',
+        'submitted_by',
+    )
 

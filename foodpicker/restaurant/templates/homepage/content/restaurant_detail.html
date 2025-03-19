@@ -434,48 +434,6 @@
         color: var(--first-color);
     }
 
-    .nearby-places-container {
-        margin-top: 1.5rem;
-        display: none;
-    }
-
-    .nearby-places-title {
-        font-size: 1.1rem;
-        margin-bottom: 0.8rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .nearby-places-list {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-        gap: 0.8rem;
-    }
-
-    .nearby-place-item {
-        background: #f5f5f5;
-        padding: 0.8rem;
-        border-radius: 6px;
-        transition: all 0.3s ease;
-        cursor: pointer;
-    }
-
-    .nearby-place-item:hover {
-        background: #e9e9e9;
-        transform: translateY(-2px);
-    }
-
-    .nearby-place-name {
-        font-weight: 500;
-        font-size: 0.9rem;
-        margin-bottom: 0.3rem;
-    }
-
-    .nearby-place-distance {
-        font-size: 0.8rem;
-        color: #666;
-    }
 
     .map-actions {
         display: flex;
@@ -629,64 +587,11 @@
         const controlsDiv = document.createElement('div');
         controlsDiv.className = 'map-controls';
         controlsDiv.innerHTML = `
-            <button class="map-control-button" id="fullscreenBtn" title="Toggle fullscreen">
-                <i class="ri-fullscreen-line"></i>
-            </button>
             <button class="map-control-button" id="centerMapBtn" title="Center map">
                 <i class="ri-focus-3-line"></i>
             </button>
-            <button class="map-control-button" id="nearbyPlacesBtn" title="Show nearby places">
-                <i class="ri-compass-3-line"></i>
-            </button>
         `;
         mapContainer.appendChild(controlsDiv);
-        
-        // Add nearby places container
-        const nearbyContainer = document.createElement('div');
-        nearbyContainer.className = 'nearby-places-container';
-        nearbyContainer.id = 'nearbyPlaces';
-        nearbyContainer.innerHTML = `
-            <h4 class="nearby-places-title">
-                <i class="ri-compass-3-line"></i> Nearby Places
-            </h4>
-            <div class="nearby-places-list" id="nearbyPlacesList">
-                <div class="loading-nearby">
-                    <i class="ri-loader-4-line spinning"></i> Loading nearby places...
-    </div>
-    </div>
-        `;
-        document.querySelector('.map-card').appendChild(nearbyContainer);
-        
-        // Fullscreen functionality
-        let isFullscreen = false;
-        document.getElementById('fullscreenBtn').addEventListener('click', function() {
-            if (!isFullscreen) {
-                mapContainer.style.position = 'fixed';
-                mapContainer.style.top = '0';
-                mapContainer.style.left = '0';
-                mapContainer.style.width = '100%';
-                mapContainer.style.height = '100%';
-                mapContainer.style.zIndex = '9999';
-                mapContainer.style.borderRadius = '0';
-                mapContainer.style.border = 'none';
-                this.innerHTML = '<i class="ri-fullscreen-exit-line"></i>';
-                document.body.style.overflow = 'hidden';
-                map.invalidateSize();
-            } else {
-                mapContainer.style.position = 'relative';
-                mapContainer.style.top = 'auto';
-                mapContainer.style.left = 'auto';
-                mapContainer.style.width = '100%';
-                mapContainer.style.height = '400px';
-                mapContainer.style.zIndex = '1';
-                mapContainer.style.borderRadius = '8px';
-                mapContainer.style.border = '3px solid #fff';
-                this.innerHTML = '<i class="ri-fullscreen-line"></i>';
-                document.body.style.overflow = 'auto';
-                map.invalidateSize();
-            }
-            isFullscreen = !isFullscreen;
-        });
         
         // Center map button
         document.getElementById('centerMapBtn').addEventListener('click', function() {
@@ -696,80 +601,6 @@
             });
         });
         
-        // Nearby places functionality
-        const nearbyPlacesBtn = document.getElementById('nearbyPlacesBtn');
-        const nearbyPlacesContainer = document.getElementById('nearbyPlaces');
-        const nearbyPlacesList = document.getElementById('nearbyPlacesList');
-        let nearbyPlacesVisible = false;
-        
-        nearbyPlacesBtn.addEventListener('click', function() {
-            if (!nearbyPlacesVisible) {
-                nearbyPlacesContainer.style.display = 'block';
-                
-                // Simulate fetching nearby places (in a real app, you'd call an API)
-                setTimeout(() => {
-                    const placesData = [
-                        { name: 'Central Park', type: 'Park', distance: '0.3 km', lat: {{ restaurant.latitude }} + 0.003, lng: {{ restaurant.longitude }} + 0.002 },
-                        { name: 'City Library', type: 'Library', distance: '0.5 km', lat: {{ restaurant.latitude }} - 0.002, lng: {{ restaurant.longitude }} + 0.003 },
-                        { name: 'Metro Station', type: 'Transport', distance: '0.7 km', lat: {{ restaurant.latitude }} + 0.004, lng: {{ restaurant.longitude }} - 0.001 },
-                        { name: 'Shopping Mall', type: 'Shopping', distance: '1.2 km', lat: {{ restaurant.latitude }} - 0.005, lng: {{ restaurant.longitude }} - 0.004 }
-                    ];
-                    
-                    // Create markers for nearby places
-                    const markers = L.markerClusterGroup();
-                    
-                    nearbyPlacesList.innerHTML = '';
-                    placesData.forEach(place => {
-                        // Add to list
-                        const placeItem = document.createElement('div');
-                        placeItem.className = 'nearby-place-item';
-                        placeItem.innerHTML = `
-                            <div class="nearby-place-name">${place.name}</div>
-                            <div class="nearby-place-distance">${place.distance}</div>
-                        `;
-                        
-                        placeItem.addEventListener('click', () => {
-                            map.setView([place.lat, place.lng], 16, {
-                                animate: true,
-                                duration: 1
-                            });
-                        });
-                        
-                        nearbyPlacesList.appendChild(placeItem);
-                        
-                        // Add marker to map
-                        const placeIcon = L.divIcon({
-                            html: `<i class="ri-map-pin-line" style="color: #4CAF50;"></i>`,
-                            className: 'place-marker',
-                            iconSize: [30, 30],
-                            iconAnchor: [15, 30]
-                        });
-                        
-                        const placeMarker = L.marker([place.lat, place.lng], {
-                            icon: placeIcon
-                        });
-                        
-                        placeMarker.bindPopup(`
-                            <div class="map-popup">
-                                <h3>${place.name}</h3>
-                                <p>${place.type}</p>
-                                <div class="popup-meta">
-                                    <span>${place.distance} from restaurant</span>
-                                </div>
-</div>
-                        `);
-                        
-                        markers.addLayer(placeMarker);
-                    });
-                    
-                    map.addLayer(markers);
-                }, 1000);
-            } else {
-                nearbyPlacesContainer.style.display = 'none';
-            }
-            
-            nearbyPlacesVisible = !nearbyPlacesVisible;
-        });
         
         // Add animation to info cards
         const infoCards = document.querySelectorAll('.info-card, .map-card');
