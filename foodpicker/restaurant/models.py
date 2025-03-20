@@ -100,24 +100,24 @@ class Restaurant(models.Model):
         )
         self.delete()
 class ApprovedRestaurant(models.Model):
-    name = models.CharField(_("Restaurant Name"), max_length=200)
+    name = models.CharField(_("Restaurant Name"), max_length=200, db_index=True)
     description = models.TextField(_("Description"))
-    cuisine_type = models.CharField(_("Cuisine Type"), max_length=50, choices=Restaurant.CUISINE_CHOICES, default='OTHER')
+    cuisine_type = models.CharField(_("Cuisine Type"), max_length=50, choices=Restaurant.CUISINE_CHOICES, default='OTHER', db_index=True)
     
     phone = models.CharField(_("Phone Number"), max_length=20, blank=True)
     email = models.EmailField(_("Email"), blank=True)
     website = models.URLField(_("Website"), blank=True)
 
-    price_range = models.CharField(_("Price Range"), max_length=4, choices=Restaurant.PRICE_CHOICES, default='$$')
-    average_rating = models.FloatField(_("Average Rating"), default=0)
+    price_range = models.CharField(_("Price Range"), max_length=4, choices=Restaurant.PRICE_CHOICES, default='$$', db_index=True)
+    average_rating = models.FloatField(_("Average Rating"), default=0, db_index=True)
 
     opentime = models.TimeField(_("Opening Hour"))
     closetime = models.TimeField(_("Closing Hour"))
-    delivery_available = models.BooleanField(_("Delivery Available"), default=False)
-    takeout_available = models.BooleanField(_("Takeout Available"), default=False)
+    delivery_available = models.BooleanField(_("Delivery Available"), default=False, db_index=True)
+    takeout_available = models.BooleanField(_("Takeout Available"), default=False, db_index=True)
 
-    latitude = models.FloatField(_("Latitude"), null=True, blank=True)
-    longitude = models.FloatField(_("Longitude"), null=True, blank=True)
+    latitude = models.FloatField(_("Latitude"), null=True, blank=True, db_index=True)
+    longitude = models.FloatField(_("Longitude"), null=True, blank=True, db_index=True)
     street_address = models.CharField(_("Street Address"), max_length=255, blank=True)
     city = models.CharField(_("City"), max_length=100, blank=True)
     state = models.CharField(_("State/Province"), max_length=100, blank=True)

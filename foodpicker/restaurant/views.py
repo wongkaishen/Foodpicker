@@ -17,6 +17,8 @@ from geopy.geocoders import Nominatim
 from functools import wraps
 from django.http import JsonResponse, HttpResponse
 from geopy.distance import geodesic
+from django.db.models import Q
+from math import cos, radians
 
 
 # Create your views here.
@@ -163,18 +165,37 @@ def activate(request, uidb64, token):
 
 @signup_required
 def get_res_list(request):
+    # Get filter parameters from request
+    search_query = request.GET.get("search", "").strip()
     cuisine_filter = request.GET.get("cuisine", "")
     price_filter = request.GET.get("price", "")
-    sort_by = request.GET.get("sort_by", "rating")  # Default to rating
+    sort_by = request.GET.get("sort_by", "rating")
+    delivery_filter = request.GET.get("delivery") == "true"
+    takeout_filter = request.GET.get("takeout") == "true"
 
-    # Fetch all approved restaurants
+    # Start with all approved restaurants
     restaurants = ApprovedRestaurant.objects.all()
 
-    # Apply filters
+    # Apply search filter
+    if search_query:
+        restaurants = restaurants.filter(
+            Q(name__icontains=search_query) |
+            Q(description__icontains=search_query)
+        )
+
+    # Apply cuisine filter
     if cuisine_filter:
-        restaurants = restaurants.filter(cuisine_type=cuisine_filter)  # Ensure correct field name is used
+        restaurants = restaurants.filter(cuisine_type=cuisine_filter)
+
+    # Apply price filter
     if price_filter:
         restaurants = restaurants.filter(price_range=price_filter)
+
+    # Apply delivery/takeout filters
+    if delivery_filter:
+        restaurants = restaurants.filter(delivery_available=True)
+    if takeout_filter:
+        restaurants = restaurants.filter(takeout_available=True)
 
     # Apply sorting
     sorting_options = {
@@ -182,7 +203,7 @@ def get_res_list(request):
         "name": "name",  # Alphabetical order
         "price": "price_range",  # Lower price first
     }
-    restaurants = restaurants.order_by(sorting_options.get(sort_by, "-average_rating"))  # Default to rating
+    restaurants = restaurants.order_by(sorting_options.get(sort_by, "-average_rating"))
 
     # If it's an AJAX request, return JSON data
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
@@ -190,8 +211,8 @@ def get_res_list(request):
             {
                 "id": r.id,
                 "name": r.name,
-                "cuisine_type": r.get_cuisine_type_display(),  # Use display text for cuisine type
-                "price_range": r.get_price_range_display(),  # Use display text for price range
+                "cuisine_type": r.get_cuisine_type_display(),
+                "price_range": r.get_price_range_display(),
                 "average_rating": r.average_rating,
                 "description": r.description,
                 "delivery_available": r.delivery_available,
@@ -238,8 +259,8 @@ def get_res_map(request):
             "name": r.name,
             "latitude": r.latitude,
             "longitude": r.longitude,
-            "opentime": r.opentime.strftime("%H:%M:%S"),
-            "closetime": r.closetime.strftime("%H:%M:%S"),
+            "cuisine_type": r.get_cuisine_type_display(),
+            "price_range": r.get_price_range_display(),
         }
         for r in restaurants if r.latitude and r.longitude
     ])
@@ -248,6 +269,7 @@ def get_res_map(request):
         "restaurants_json": restaurants_json,
         'price_choices': Restaurant.PRICE_CHOICES,
         'cuisine_choices': Restaurant.CUISINE_CHOICES,
+        'title': 'Restaurant Map'
     }
     return render(request, "homepage/content/map.html", context)
 
@@ -287,24 +309,57 @@ def restaurants_within_radius(request):
         user_lat = float(request.GET.get("latitude"))
         user_lon = float(request.GET.get("longitude"))
         radius = float(request.GET.get("radius"))  # in km
+        cuisine_filter = request.GET.get("cuisine", "")
+        price_filter = request.GET.get("price", "")
+
     except (TypeError, ValueError):
         return JsonResponse({"error": "Invalid parameters"}, status=400)
 
     user_location = (user_lat, user_lon)
-    restaurants = ApprovedRestaurant.objects.all()
     
-    filtered_restaurants = [
-        {
-            "id": r.id,
-            "name": r.name,
-            "latitude": r.latitude,
-            "longitude": r.longitude,
-            "distance_km": geodesic(user_location, (r.latitude, r.longitude)).km
-        }
-        for r in restaurants if r.latitude and r.longitude and geodesic(user_location, (r.latitude, r.longitude)).km <= radius
-    ]
+    # Start with a base queryset and select only needed fields
+    restaurants = ApprovedRestaurant.objects.only(
+        'id', 'name', 'latitude', 'longitude', 
+        'cuisine_type', 'price_range'
+    )
 
-    return JsonResponse({"restaurants": filtered_restaurants})
+    # Apply filters efficiently
+    if cuisine_filter:
+        restaurants = restaurants.filter(cuisine_type=cuisine_filter)
+    if price_filter:
+        restaurants = restaurants.filter(price_range=price_filter)
+
+    # Calculate rough distance bounds to reduce the number of restaurants to check
+    # 1 degree of latitude/longitude is approximately 111km at the equator
+    lat_range = radius / 111.0
+    lon_range = radius / (111.0 * abs(cos(radians(user_lat))))
+    
+    restaurants = restaurants.filter(
+        latitude__range=(user_lat - lat_range, user_lat + lat_range),
+        longitude__range=(user_lon - lon_range, user_lon + lon_range)
+    )
+    
+    # Calculate exact distances and filter
+    filtered_restaurants = []
+    for r in restaurants:
+        distance = geodesic(user_location, (r.latitude, r.longitude)).km
+        if distance <= radius:
+            filtered_restaurants.append({
+                "id": r.id,
+                "name": r.name,
+                "latitude": r.latitude,
+                "longitude": r.longitude,
+                "cuisine_type": r.get_cuisine_type_display(),
+                "price_range": r.get_price_range_display(),
+                "distance_km": distance
+            })
+    
+    # Sort by distance
+    filtered_restaurants.sort(key=lambda x: x['distance_km'])
+
+    return JsonResponse({
+        "restaurants": filtered_restaurants[:50]  # Limit to 50 results for performance
+    })
 
 @signup_required
 def location_view(request):

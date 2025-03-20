@@ -308,26 +308,20 @@
       <div class="filter-group">
         <label for="cuisineFilter">Cuisine:</label>
         <select id="cuisineFilter" class="form-select">
-          <option value="all" selected>All Cuisines</option>
-          <option value="chinese">Chinese</option>
-          <option value="western">Western</option>
-          <option value="japanese">Japanese</option>
-          <option value="korean">Korean</option>
-          <option value="thai">Thai</option>
-          <option value="indian">Indian</option>
-          <option value="malaysian">Malaysian</option>
-          <option value="fusion">Fusion</option>
+          <option value="">All Cuisines</option>
+          {% for code, name in cuisine_choices %}
+            <option value="{{ code }}">{{ name }}</option>
+          {% endfor %}
         </select>
       </div>
 
       <div class="filter-group">
         <label for="priceFilter">Price:</label>
         <select id="priceFilter" class="form-select">
-          <option value="all" selected>All Prices</option>
-          <option value="$">$ (Under RM20)</option>
-          <option value="$$">$$ (RM20-50)</option>
-          <option value="$$$">$$$ (RM50-100)</option>
-          <option value="$$$$">$$$$ (Above RM100)</option>
+          <option value="">All Prices</option>
+          {% for code, name in price_choices %}
+            <option value="{{ code }}">{{ name }}</option>
+          {% endfor %}
         </select>
       </div>
     </div>
@@ -384,6 +378,9 @@
   let userMarker;
   let restaurantMarkers = [];
   let userLat, userLon;
+  let lastFetchTimeout;
+  const FETCH_DELAY = 300; // ms delay for debouncing
+  
   const radiusFilter = document.getElementById("radiusFilter");
   const cuisineFilter = document.getElementById("cuisineFilter");
   const priceFilter = document.getElementById("priceFilter");
@@ -445,18 +442,45 @@
       .openPopup();
   }
 
-  async function fetchRestaurants(radius, cuisine = "all", price = "all") {
+  // Debounce function
+  function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }
+
+  async function fetchRestaurants(radius, cuisine = "", price = "") {
     if (!userLat || !userLon) {
-      console.log("User location not available.");
+      showNotification("User location not available.", "error");
       return;
+    }
+
+    // Clear previous timeout if exists
+    if (lastFetchTimeout) {
+      clearTimeout(lastFetchTimeout);
     }
 
     loadingContainer.classList.remove("hidden");
 
     try {
-      const response = await fetch(
-        `/restaurants_within_radius/?latitude=${userLat}&longitude=${userLon}&radius=${radius}&cuisine=${cuisine}&price=${price}`
-      );
+      const params = new URLSearchParams({
+        latitude: userLat,
+        longitude: userLon,
+        radius: radius,
+        cuisine: cuisine,
+        price: price
+      });
+
+      const response = await fetch(`/restaurants_within_radius/?${params.toString()}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       const data = await response.json();
 
       if (data.error) {
@@ -464,8 +488,8 @@
         return;
       }
 
-      restaurantMarkers.forEach((marker) => map.removeLayer(marker));
-      restaurantMarkers = [];
+      // Clear existing markers efficiently
+      clearMarkers();
 
       if (data.restaurants.length === 0) {
         showNotification(
@@ -479,46 +503,20 @@
         );
       }
 
+      // Create markers batch
+      const bounds = L.latLngBounds();
       data.restaurants.forEach((restaurant) => {
-        const marker = L.marker([restaurant.latitude, restaurant.longitude], {
-          icon: restaurantIcon,
-        }).addTo(map);
-        marker.bindPopup(`
-                    <div class="popup-content">
-                        <div class="popup-header">${restaurant.name}</div>
-                        <div class="popup-info">
-                            <div class="popup-info-item">
-                                <i class="ri-time-line"></i>
-                                <span>Open: ${restaurant.opentime} - ${
-          restaurant.closetime
-        }</span>
-                            </div>
-                            <div class="popup-info-item">
-                                <i class="ri-map-pin-line"></i>
-                                <span>Distance: ${restaurant.distance_km.toFixed(
-                                  2
-                                )} km</span>
-                            </div>
-                            <div class="popup-info-item">
-                                <i class="ri-restaurant-line"></i>
-                                <span>Cuisine: ${
-                                  restaurant.cuisine_type || "Various"
-                                }</span>
-                            </div>
-                            <div class="popup-info-item">
-                                <i class="ri-money-dollar-circle-line"></i>
-                                <span>Price: ${
-                                  restaurant.price_range || "Various"
-                                }</span>
-                            </div>
-                        </div>
-                        <a href="/restaurant/${
-                          restaurant.id
-                        }/" class="details-link">View Details</a>
-                    </div>
-                `);
+        const marker = createRestaurantMarker(restaurant);
         restaurantMarkers.push(marker);
+        bounds.extend([restaurant.latitude, restaurant.longitude]);
       });
+
+      // Adjust map bounds if we have restaurants
+      if (data.restaurants.length > 0) {
+        bounds.extend([userLat, userLon]);
+        map.fitBounds(bounds, { padding: [50, 50] });
+      }
+
     } catch (error) {
       console.error("Error fetching restaurants:", error);
       showNotification("Error loading restaurants. Please try again.", "error");
@@ -526,6 +524,63 @@
       loadingContainer.classList.add("hidden");
     }
   }
+
+  function clearMarkers() {
+    restaurantMarkers.forEach(marker => map.removeLayer(marker));
+    restaurantMarkers = [];
+  }
+
+  function createRestaurantMarker(restaurant) {
+    const marker = L.marker([restaurant.latitude, restaurant.longitude], {
+      icon: restaurantIcon,
+    }).addTo(map);
+    
+    marker.bindPopup(`
+      <div class="popup-content">
+        <div class="popup-header">${restaurant.name}</div>
+        <div class="popup-info">
+          <div class="popup-info-item">
+            <i class="ri-map-pin-line"></i>
+            <span>Distance: ${restaurant.distance_km.toFixed(2)} km</span>
+          </div>
+          <div class="popup-info-item">
+            <i class="ri-restaurant-line"></i>
+            <span>Cuisine: ${restaurant.cuisine_type || "Various"}</span>
+          </div>
+          <div class="popup-info-item">
+            <i class="ri-money-dollar-circle-line"></i>
+            <span>Price: ${restaurant.price_range || "Various"}</span>
+          </div>
+        </div>
+        <a href="/restaurant/${restaurant.id}/" class="details-link">View Details</a>
+      </div>
+    `);
+    return marker;
+  }
+
+  // Debounced version of fetchRestaurants
+  const debouncedFetchRestaurants = debounce((radius, cuisine, price) => {
+    fetchRestaurants(radius, cuisine, price);
+  }, FETCH_DELAY);
+
+  // Event listeners
+  radiusFilter.addEventListener("change", () =>
+    debouncedFetchRestaurants(radiusFilter.value, cuisineFilter.value, priceFilter.value)
+  );
+
+  cuisineFilter.addEventListener("change", () =>
+    debouncedFetchRestaurants(radiusFilter.value, cuisineFilter.value, priceFilter.value)
+  );
+
+  priceFilter.addEventListener("change", () =>
+    debouncedFetchRestaurants(radiusFilter.value, cuisineFilter.value, priceFilter.value)
+  );
+
+  refreshLocationBtn.addEventListener("click", getUserLocation);
+  findNearestBtn.addEventListener("click", fetchNearestRestaurant);
+
+  // Initialize
+  getUserLocation();
 
   async function fetchNearestRestaurant() {
     if (!userLat || !userLon) return;
@@ -571,6 +626,50 @@
         "error"
       );
     } finally {
+      loadingContainer.classList.add("hidden");
+    }
+  }
+
+  function handleLocationSuccess(position) {
+    userLat = position.coords.latitude;
+    userLon = position.coords.longitude;
+
+    updateMap(userLat, userLon);
+    fetchRestaurants(
+      radiusFilter.value,
+      cuisineFilter.value,
+      priceFilter.value
+    );
+  }
+
+  function handleLocationError(error) {
+    console.error("Geolocation error:", error);
+    showNotification(
+      "Unable to get your location. Please enable location services.",
+      "error"
+    );
+    initializeMap(2.9252, 101.6414); // Default fallback location
+  }
+
+  function getUserLocation() {
+    loadingContainer.classList.remove("hidden");
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        handleLocationSuccess,
+        handleLocationError,
+        {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0,
+        }
+      );
+    } else {
+      showNotification(
+        "Geolocation is not supported by your browser.",
+        "error"
+      );
+      initializeMap(2.9252, 101.6414); // Fallback location
       loadingContainer.classList.add("hidden");
     }
   }
@@ -687,69 +786,6 @@
       }
     }, 5000);
   }
-
-  function handleLocationSuccess(position) {
-    userLat = position.coords.latitude;
-    userLon = position.coords.longitude;
-
-    updateMap(userLat, userLon);
-    fetchRestaurants(
-      radiusFilter.value,
-      cuisineFilter.value,
-      priceFilter.value
-    );
-  }
-
-  function handleLocationError(error) {
-    console.error("Geolocation error:", error);
-    showNotification(
-      "Unable to get your location. Please enable location services.",
-      "error"
-    );
-    initializeMap(2.9252, 101.6414); // Default fallback location
-  }
-
-  function getUserLocation() {
-    loadingContainer.classList.remove("hidden");
-
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        handleLocationSuccess,
-        handleLocationError,
-        {
-          enableHighAccuracy: true,
-          timeout: 5000,
-          maximumAge: 0,
-        }
-      );
-    } else {
-      showNotification(
-        "Geolocation is not supported by your browser.",
-        "error"
-      );
-      initializeMap(2.9252, 101.6414); // Fallback location
-      loadingContainer.classList.add("hidden");
-    }
-  }
-
-  // Event listeners
-  radiusFilter.addEventListener("change", () =>
-    fetchRestaurants(radiusFilter.value, cuisineFilter.value, priceFilter.value)
-  );
-
-  cuisineFilter.addEventListener("change", () =>
-    fetchRestaurants(radiusFilter.value, cuisineFilter.value, priceFilter.value)
-  );
-
-  priceFilter.addEventListener("change", () =>
-    fetchRestaurants(radiusFilter.value, cuisineFilter.value, priceFilter.value)
-  );
-
-  refreshLocationBtn.addEventListener("click", getUserLocation);
-  findNearestBtn.addEventListener("click", fetchNearestRestaurant);
-
-  // Initialize
-  getUserLocation();
 </script>
 
 {% endblock %}

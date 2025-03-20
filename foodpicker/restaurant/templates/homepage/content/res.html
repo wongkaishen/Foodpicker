@@ -530,7 +530,7 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Filter toggle
+        // Filter toggle functionality
         const filterToggle = document.getElementById('filterToggle');
         const filterSection = document.getElementById('filterSection');
         
@@ -549,19 +549,18 @@
                 }, 10);
             }
         });
-        
-        // Search functionality
+
+        // Filter functionality
         const searchInput = document.getElementById('searchRestaurant');
         const cuisineFilter = document.getElementById('cuisineFilter');
         const priceFilter = document.getElementById('priceFilter');
         const sortBy = document.getElementById('sortBy');
         const deliveryFilter = document.getElementById('deliveryFilter');
         const takeoutFilter = document.getElementById('takeoutFilter');
-        const restaurantCards = document.querySelectorAll('.restaurant-card');
-        const loadingContainer = document.getElementById('loadingContainer');
         const restaurantResults = document.getElementById('restaurantResults');
-        
-        // Debounce function to limit how often a function can be called
+        const loadingContainer = document.getElementById('loadingContainer');
+
+        // Debounce function
         function debounce(func, wait) {
             let timeout;
             return function() {
@@ -571,168 +570,75 @@
                 timeout = setTimeout(() => func.apply(context, args), wait);
             };
         }
-        
-        // Function to filter restaurants
-        const filterRestaurants = debounce(function() {
-            const searchTerm = searchInput.value.toLowerCase();
-            const cuisineValue = cuisineFilter.value;  // Capture cuisine filter value
-            const priceValue = priceFilter.value;
-            const sortByValue = sortBy.value;  // Capture sortBy filter value
-            const deliveryChecked = deliveryFilter.checked;
-            const takeoutChecked = takeoutFilter.checked;
-            
+
+        // Function to fetch filtered restaurants
+        function fetchRestaurants() {
             // Show loading state
             loadingContainer.style.display = 'flex';
             restaurantResults.style.opacity = '0.5';
-            
-            // Simulate loading delay (remove in production)
-            setTimeout(() => {
-                let visibleCount = 0;
-                
-                restaurantCards.forEach(card => {
-                    const name = card.querySelector('.restaurant-name').textContent.toLowerCase();
-                    const description = card.querySelector('.restaurant-description').textContent.toLowerCase();
-                    const cuisine = card.querySelector('.cuisine-type').textContent;
-                    const price = card.querySelector('.price-badge').textContent;
-                    const hasDelivery = card.innerHTML.includes('Delivery');
-                    const hasTakeout = card.innerHTML.includes('Takeout');
-                    
-                    // Check if card matches all filters
-                    const matchesSearch = name.includes(searchTerm) || description.includes(searchTerm);
-                    const matchesCuisine = !cuisineValue || cuisine.includes(cuisineValue);
-                    const matchesPrice = !priceValue || price === priceValue;
-                    const matchesDelivery = !deliveryChecked || hasDelivery;
-                    const matchesTakeout = !takeoutChecked || hasTakeout;
-                    
-                    const isVisible = matchesSearch && matchesCuisine && matchesPrice && 
-                                     matchesDelivery && matchesTakeout;
-                    
-                    // Show/hide card with animation
-                    if (isVisible) {
-                        card.style.display = 'block';
-                        card.style.opacity = '0';
-                        card.style.transform = 'translateY(20px)';
-                        
-                        // Stagger animations
-                        setTimeout(() => {
-                            card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-                            card.style.opacity = '1';
-                            card.style.transform = 'translateY(0)';
-                        }, visibleCount * 50);
-                        
-                        visibleCount++;
-                    } else {
-                        card.style.display = 'none';
-                    }
-                });
-                
-                // Hide loading state
-                loadingContainer.style.display = 'none';
-                restaurantResults.style.opacity = '1';
-                
-                // Show empty state if no results
-                const emptyState = document.querySelector('.empty-state');
-                const restaurantGrid = document.querySelector('.restaurant-grid');
-                
-                if (visibleCount === 0 && restaurantGrid) {
-                    restaurantGrid.style.display = 'none';
-                    
-                    if (!emptyState) {
-                        const newEmptyState = document.createElement('div');
-                        newEmptyState.className = 'empty-state';
-                        newEmptyState.innerHTML = `
+
+            // Build query parameters
+            const params = new URLSearchParams({
+                search: searchInput.value,
+                cuisine: cuisineFilter.value,
+                price: priceFilter.value,
+                sort_by: sortBy.value,
+                delivery: deliveryFilter.checked,
+                takeout: takeoutFilter.checked
+            });
+
+            // Fetch data from the server
+            fetch(`/restaurant/?${params.toString()}`, {
+                headers: { 'x-requested-with': 'XMLHttpRequest' }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.restaurants.length === 0) {
+                    // Show empty state
+                    restaurantResults.innerHTML = `
+                        <div class="empty-state">
                             <i class="ri-restaurant-line"></i>
                             <h3>No Restaurants Found</h3>
                             <p>We couldn't find any restaurants matching your criteria. Try adjusting your filters.</p>
                             <button class="add-restaurant-btn" id="resetFilters">
                                 <i class="ri-refresh-line"></i> Reset Filters
                             </button>
-                        `;
-                        restaurantResults.appendChild(newEmptyState);
-                        
-                        // Add event listener to reset button
-                        document.getElementById('resetFilters').addEventListener('click', resetFilters);
-                    } else {
-                        emptyState.style.display = 'block';
-                    }
-                } else if (restaurantGrid) {
-                    restaurantGrid.style.display = 'grid';
-                    if (emptyState) {
-                        emptyState.style.display = 'none';
-                    }
+                        </div>
+                    `;
+                    
+                    // Add reset filters functionality
+                    document.getElementById('resetFilters').addEventListener('click', resetFilters);
+                } else {
+                    // Update the restaurant results with animation
+                    restaurantResults.innerHTML = `
+                        <div class="restaurant-grid">
+                            ${data.restaurants.map((r, index) => `
+                                <div class="restaurant-card delay-${index % 10}">
+                                    <div class="restaurant-image" style="background-image: url('/static/img/restaurant-placeholder.jpg')">
+                                        <span class="price-badge">${r.price_range}</span>
+                                    </div>
+                                    <div class="restaurant-info">
+                                        <a href="/restaurant/${r.id}/" class="restaurant-name">${r.name}</a>
+                                        <div class="restaurant-meta">
+                                            <span class="cuisine-type">${r.cuisine_type}</span>
+                                            <span class="rating">
+                                                <i class="ri-star-fill"></i> ${r.average_rating.toFixed(1)}
+                                            </span>
+                                        </div>
+                                        <p class="restaurant-description">${r.description}</p>
+                                        <div class="restaurant-footer">
+                                            <div class="restaurant-features">
+                                                ${r.delivery_available ? '<span class="feature-badge"><i class="ri-bike-line"></i> Delivery</span>' : ''}
+                                                ${r.takeout_available ? '<span class="feature-badge"><i class="ri-shopping-bag-line"></i> Takeout</span>' : ''}
+                                            </div>
+                                            <a href="/restaurant/${r.id}/" class="view-details">View Details</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
                 }
-            }, 300); // Simulated delay
-        }, 300); // Debounce delay
-        
-        // Function to reset all filters
-        function resetFilters() {
-            searchInput.value = '';
-            cuisineFilter.value = '';
-            priceFilter.value = '';
-            sortBy.value = 'rating';
-            deliveryFilter.checked = false;
-            takeoutFilter.checked = false;
-            filterRestaurants();
-        }
-        
-        // Add event listeners to all filter inputs
-        searchInput.addEventListener('input', filterRestaurants);
-        cuisineFilter.addEventListener('change', filterRestaurants);
-        priceFilter.addEventListener('change', filterRestaurants);
-        sortBy.addEventListener('change', filterRestaurants);
-        deliveryFilter.addEventListener('change', filterRestaurants);
-        takeoutFilter.addEventListener('change', filterRestaurants);
-    });
-</script>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const cuisineFilter = document.getElementById('cuisineFilter');
-        const sortBy = document.getElementById('sortBy');
-        const restaurantResults = document.getElementById('restaurantResults');
-        const loadingContainer = document.getElementById('loadingContainer');
-
-        // Function to fetch filtered restaurants
-        function fetchRestaurants() {
-            const cuisineValue = cuisineFilter.value;
-            const sortByValue = sortBy.value;
-
-            // Show loading state
-            loadingContainer.style.display = 'flex';
-            restaurantResults.style.opacity = '0.5';
-
-            // Fetch data from the server
-            const params = new URLSearchParams({
-                cuisine: cuisineValue,
-                sort_by: sortByValue,
-            });
-
-            fetch(`/get_res_list/?${params.toString()}`, {
-                headers: { 'x-requested-with': 'XMLHttpRequest' }
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Update the restaurant results
-                restaurantResults.innerHTML = data.restaurants.map(r => `
-                    <div class="restaurant-card">
-                        <div class="restaurant-image" style="background-image: url('/static/img/restaurant-placeholder.jpg')">
-                            <span class="price-badge">${r.price_range}</span>
-                        </div>
-                        <div class="restaurant-info">
-                            <a href="/restaurant/${r.id}/" class="restaurant-name">${r.name}</a>
-                            <div class="restaurant-meta">
-                                <span class="cuisine-type">${r.cuisine_type}</span>
-                                <span class="rating">
-                                    <i class="ri-star-fill"></i> ${r.average_rating.toFixed(1)}
-                                </span>
-                            </div>
-                            <p class="restaurant-description">${r.description}</p>
-                            <div class="restaurant-footer">
-                                ${r.delivery_available ? '<span class="feature-badge"><i class="ri-bike-line"></i> Delivery</span>' : ''}
-                                ${r.takeout_available ? '<span class="feature-badge"><i class="ri-shopping-bag-line"></i> Takeout</span>' : ''}
-                            </div>
-                        </div>
-                    </div>
-                `).join('');
 
                 // Hide loading state
                 loadingContainer.style.display = 'none';
@@ -745,9 +651,25 @@
             });
         }
 
-        // Add event listeners to filters
+        // Function to reset all filters
+        function resetFilters() {
+            searchInput.value = '';
+            cuisineFilter.value = '';
+            priceFilter.value = '';
+            sortBy.value = 'rating';
+            deliveryFilter.checked = false;
+            takeoutFilter.checked = false;
+            fetchRestaurants();
+        }
+
+        // Add event listeners with debounce
+        const debouncedFetch = debounce(fetchRestaurants, 300);
+        searchInput.addEventListener('input', debouncedFetch);
         cuisineFilter.addEventListener('change', fetchRestaurants);
+        priceFilter.addEventListener('change', fetchRestaurants);
         sortBy.addEventListener('change', fetchRestaurants);
+        deliveryFilter.addEventListener('change', fetchRestaurants);
+        takeoutFilter.addEventListener('change', fetchRestaurants);
     });
 </script>
 {% endblock %}
