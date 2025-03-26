@@ -43,7 +43,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 DEBUG = True
 
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ['127.0.0.1', '.vercel.app']
 
 LOGIN_URL = "/signup/"
 
@@ -95,20 +95,28 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "base.wsgi.application"
+WSGI_APPLICATION = "base.wsgi.app"
 
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 DATABASES = {
+    # "default": {
+    #     "ENGINE": "django.contrib.gis.db.backends.postgis",  # Use the PostGIS engine
+    #     "NAME": "postgres",
+    #     "USER": "postgres",
+    #     "PASSWORD": env("PASSWORD"),
+    #     "HOST": "localhost",
+    #     "PORT": "5432",
+    # },
     "default": {
-        "ENGINE": "django.contrib.gis.db.backends.postgis",  # Use the PostGIS engine
+        "ENGINE": "django.db.backends.postgresql_psycopg2",  # Use the PostGIS engine
         "NAME": "postgres",
-        "USER": "postgres",
+        "USER": "postgres.jeheqpjkquncbcsajnqv",
         "PASSWORD": env("PASSWORD"),
-        "HOST": "localhost",
-        "PORT": "5432",
+        "HOST": "aws-0-us-east-2.pooler.supabase.com",
+        "PORT": "6543",
     }
 }
 
