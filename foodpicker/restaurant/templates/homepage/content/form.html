@@ -1469,17 +1469,21 @@
         const searchByMap = document.getElementById('search-by-map');
 
         searchMethodToggle.addEventListener('change', function() {
-            if (this.checked) {
-                searchByText.classList.remove('active');
-                searchByMap.classList.add('active');
-                setTimeout(() => {
-                    map.invalidateSize();
-                }, 100);
+            if (!this.checked) {
+            searchByText.classList.add('active');
+            searchByMap.classList.remove('active');
             } else {
-                searchByMap.classList.remove('active');
-                searchByText.classList.add('active');
+            searchByMap.classList.add('active');
+            searchByText.classList.remove('active');
+            setTimeout(() => {
+                map.invalidateSize();
+            }, 100);
             }
         });
+
+        // Set initial state to search by text
+        searchByText.classList.add('active');
+        searchByMap.classList.remove('active');
 
         // Geocoding button functionality
         document.getElementById('geocode-address').addEventListener('click', function() {

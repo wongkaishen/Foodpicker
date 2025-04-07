@@ -468,9 +468,34 @@ def contact(request):
                 [admin_email],
                 fail_silently=False,
             )
+            
+            # Send a ticket/request email to the user
+            ticket_subject = f"Your Ticket Request: {subject}"
+            ticket_body = f"""
+            Dear {name},
+            
+            Thank you for reaching out to us. We have received your message and will get back to you shortly.
+            
+            Here is a copy of your message:
+            Subject: {subject}
+            Message: {message}
+            
+            If you have any additional information to provide, feel free to reply to this email.
+            
+            Best regards,
+            The Foodpicker Team
+            """
+            
+            send_mail(
+                ticket_subject,
+                ticket_body,
+                settings.EMAIL_HOST_USER,
+                [email],
+                fail_silently=False,
+            )
         except Exception as e:
             # Log the error but don't prevent the message from being saved
-            print(f"Error sending notification email: {e}")
+            print(f"Error sending email: {e}")
         
         # Return success response for AJAX requests
         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
