@@ -96,8 +96,9 @@
                     <div id="search-by-text" class="search-method active">
                         <div class="form-group search-wrapper">
                             <label for="search_location" class="form-label">Search Location:</label>
-                                                                <i class="fas fa-search search-icon"></i>
+                          <i class="fas fa-search search-icon"></i>
                             <div class="search-container">
+
                                 <input type="text" id="search_location" class="form-control with-icon" placeholder="Type an address to search">
                                 <ul id="suggestions" class="dropdown-menu"></ul>
                             </div>
@@ -429,6 +430,7 @@
         height: 2px;
         background: #e9ecef;
         z-index: 0;
+
     }
 
     .progress-step.active {
@@ -442,6 +444,7 @@
     .progress-step i {
         font-size: 1.5rem;
         z-index: 1;
+
         background: white;
         padding: 0.5rem;
         border-radius: 50%;
@@ -602,6 +605,7 @@
         position: absolute;
         left: 1rem;
         top: 67%;
+
         transform: translateY(-50%);
         color: #6c757d;
         z-index: 2;
@@ -662,6 +666,7 @@
         position: absolute;
         left: 1.2rem;
         top: 58px;
+
         transform: translateY(-50%);
         color: #6c757d;
         z-index: 2;
@@ -682,6 +687,7 @@
         max-height: 300px;
         overflow-y: auto;
         z-index: 3;
+
         border: 1px solid #e9ecef;
         padding: 0.5rem 0;
         display: none;
@@ -897,12 +903,13 @@
 
         .progress-bar {
             padding: 1rem;
-            z-index: 0;
+            z-index: 0;]
         }
 
         .progress-step span {
             display: none;
             z-index: 0;
+
         }
 
         .section-content {
@@ -1494,7 +1501,6 @@
                 postalCode: postalCodeInput.value,
                 country: countryInput.value || 'Malaysia'
             };
-
             const addressString = Object.values(address)
                 .filter(val => val)
                 .join(', ');

@@ -102,22 +102,22 @@ WSGI_APPLICATION = "base.wsgi.app"
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 DATABASES = {
-    # "default": {
-    #     "ENGINE": "django.contrib.gis.db.backends.postgis",  # Use the PostGIS engine
-    #     "NAME": "postgres",
-    #     "USER": "postgres",
-    #     "PASSWORD": env("PASSWORD"),
-    #     "HOST": "localhost",
-    #     "PORT": "5432",
-    # },
     "default": {
-        "ENGINE": "django.db.backends.postgresql_psycopg2",  # Use the PostGIS engine
+        "ENGINE": "django.contrib.gis.db.backends.postgis",  # Use the PostGIS engine
         "NAME": "postgres",
-        "USER": "postgres.jeheqpjkquncbcsajnqv",
+        "USER": "postgres",
         "PASSWORD": env("PASSWORD"),
-        "HOST": "aws-0-us-east-2.pooler.supabase.com",
-        "PORT": "6543",
-    }
+        "HOST": "localhost",
+        "PORT": "5432",
+    },
+    # "default": {
+    #     "ENGINE": "django.db.backends.postgresql_psycopg2",  # Use the PostGIS engine
+    #     "NAME": "postgres",
+    #     "USER": env("USER"),
+    #     "PASSWORD": env("PASSWORD"),
+    #     "HOST": env("HOST"),
+    #     "PORT": "6543",
+    # }
 }
 
 # DATABASES = {
