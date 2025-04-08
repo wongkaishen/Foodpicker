@@ -96,8 +96,9 @@
                     <div id="search-by-text" class="search-method active">
                         <div class="form-group search-wrapper">
                             <label for="search_location" class="form-label">Search Location:</label>
+                          <i class="fas fa-search search-icon"></i>
                             <div class="search-container">
-                                <i class="fas fa-search search-icon"></i>
+
                                 <input type="text" id="search_location" class="form-control with-icon" placeholder="Type an address to search">
                                 <ul id="suggestions" class="dropdown-menu"></ul>
                             </div>
@@ -428,7 +429,8 @@
         width: 100%;
         height: 2px;
         background: #e9ecef;
-        z-index: 1;
+        z-index: 0;
+
     }
 
     .progress-step.active {
@@ -441,7 +443,8 @@
 
     .progress-step i {
         font-size: 1.5rem;
-        z-index: 2;
+        z-index: 1;
+
         background: white;
         padding: 0.5rem;
         border-radius: 50%;
@@ -601,7 +604,8 @@
     .search-icon {
         position: absolute;
         left: 1rem;
-        top: 50%;
+        top: 67%;
+
         transform: translateY(-50%);
         color: #6c757d;
         z-index: 2;
@@ -661,7 +665,8 @@
     .search-icon {
         position: absolute;
         left: 1.2rem;
-        top: 50%;
+        top: 58px;
+
         transform: translateY(-50%);
         color: #6c757d;
         z-index: 2;
@@ -672,7 +677,6 @@
     }
 
     #suggestions {
-        position: absolute;
         top: 100%;
         left: 0;
         right: 0;
@@ -682,7 +686,8 @@
         margin-top: 0.5rem;
         max-height: 300px;
         overflow-y: auto;
-        z-index: 1000;
+        z-index: 3;
+
         border: 1px solid #e9ecef;
         padding: 0.5rem 0;
         display: none;
@@ -898,10 +903,13 @@
 
         .progress-bar {
             padding: 1rem;
+            z-index: 0;]
         }
 
         .progress-step span {
             display: none;
+            z-index: 0;
+
         }
 
         .section-content {
@@ -1468,17 +1476,21 @@
         const searchByMap = document.getElementById('search-by-map');
 
         searchMethodToggle.addEventListener('change', function() {
-            if (this.checked) {
-                searchByText.classList.remove('active');
-                searchByMap.classList.add('active');
-                setTimeout(() => {
-                    map.invalidateSize();
-                }, 100);
+            if (!this.checked) {
+            searchByText.classList.add('active');
+            searchByMap.classList.remove('active');
             } else {
-                searchByMap.classList.remove('active');
-                searchByText.classList.add('active');
+            searchByMap.classList.add('active');
+            searchByText.classList.remove('active');
+            setTimeout(() => {
+                map.invalidateSize();
+            }, 100);
             }
         });
+
+        // Set initial state to search by text
+        searchByText.classList.add('active');
+        searchByMap.classList.remove('active');
 
         // Geocoding button functionality
         document.getElementById('geocode-address').addEventListener('click', function() {
@@ -1489,7 +1501,6 @@
                 postalCode: postalCodeInput.value,
                 country: countryInput.value || 'Malaysia'
             };
-
             const addressString = Object.values(address)
                 .filter(val => val)
                 .join(', ');
