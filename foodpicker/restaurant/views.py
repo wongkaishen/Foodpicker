@@ -37,6 +37,9 @@ def home(request):  # home view point
 
 
 def signup(request):  # signup view
+    if request.user.is_authenticated:
+        return redirect("res.home")  # Redirect to home if already logged in
+
     if request.method == "POST":
         username = request.POST["username"]
         fname = request.POST["fname"]
@@ -89,12 +92,12 @@ def signup(request):  # signup view
         current_site = get_current_site(request)
         email_subject = "Confirm Your Email @ Foodpicker - Login"
         message2 = render_to_string(
-            "verification/email_confirmation.html",
+            "emails/activation_email.html",
             {
                 "name": myuser.username,
                 "domain": current_site.domain,
                 "uid": urlsafe_base64_encode(force_bytes(myuser.pk)),
-                "token": generate_token().make_token(myuser),
+                "token": generate_token.make_token(myuser),
             },
         )
 
@@ -105,6 +108,7 @@ def signup(request):  # signup view
             settings.EMAIL_HOST_USER,
             [myuser.email],
         )
+        confirmation_email.content_subtype = "html"  # Set the email content to HTML
         confirmation_email.fail_silently = True
         confirmation_email.send()
 
@@ -123,6 +127,8 @@ def signup_required(view_func):
 
 
 def signin(request):
+    if request.user.is_authenticated:
+        return redirect("res.home")
     if request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("pass1")
@@ -154,7 +160,7 @@ def activate(request, uidb64, token):
     except (TypeError, ValueError, OverflowError, User.DoesNotExist):
         myuser = None
 
-    if myuser is not None and generate_token().check_token(myuser, token):
+    if myuser is not None and generate_token.check_token(myuser, token):
         myuser.is_active = True
         myuser.save()
         login(request, myuser)

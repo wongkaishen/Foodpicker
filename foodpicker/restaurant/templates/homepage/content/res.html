@@ -464,6 +464,13 @@
                         <span class="slider"></span>
                     </label>
                 </label>
+                <label class="filter-switch">
+                    <span>Halal</span>
+                    <label class="switch">
+                        <input type="checkbox" id="halalfilter">
+                        <span class="slider"></span>
+                    </label>
+                </label>
             </div>
         </div>
     </div>
@@ -479,7 +486,7 @@
         <div class="restaurant-grid">
             {% for restaurant in restaurants %}
             <div class="restaurant-card {{ forloop.counter0|animation_delay }}">
-                <div class="restaurant-image" style="background-image: url('{% static 'img/restaurant-placeholder.jpg' %}')">
+                <div class="restaurant-image" style="background-image: url('{% static '/static/img/restaurant-placeholder.jpg' %}')">
                     <span class="price-badge">{{ restaurant.price_range }}</span>
                 </div>
                 <div class="restaurant-info">
@@ -557,6 +564,7 @@
         const sortBy = document.getElementById('sortBy');
         const deliveryFilter = document.getElementById('deliveryFilter');
         const takeoutFilter = document.getElementById('takeoutFilter');
+        const halalfilter = document.getElementById('halalfilter');
         const restaurantResults = document.getElementById('restaurantResults');
         const loadingContainer = document.getElementById('loadingContainer');
 
@@ -584,7 +592,8 @@
                 price: priceFilter.value,
                 sort_by: sortBy.value,
                 delivery: deliveryFilter.checked,
-                takeout: takeoutFilter.checked
+                takeout: takeoutFilter.checked,
+                halal: halalfilter.checked
             });
 
             // Fetch data from the server
@@ -630,6 +639,7 @@
                                             <div class="restaurant-features">
                                                 ${r.delivery_available ? '<span class="feature-badge"><i class="ri-bike-line"></i> Delivery</span>' : ''}
                                                 ${r.takeout_available ? '<span class="feature-badge"><i class="ri-shopping-bag-line"></i> Takeout</span>' : ''}
+                                                ${r.halal ? '<span class="feature-badge"><i class="ri-check-line"></i> Halal</span>' : ''}
                                             </div>
                                             <a href="/restaurant/${r.id}/" class="view-details">View Details</a>
                                         </div>
@@ -659,6 +669,7 @@
             sortBy.value = 'rating';
             deliveryFilter.checked = false;
             takeoutFilter.checked = false;
+            halalfilter.checked = false;
             fetchRestaurants();
         }
 
@@ -670,6 +681,7 @@
         sortBy.addEventListener('change', fetchRestaurants);
         deliveryFilter.addEventListener('change', fetchRestaurants);
         takeoutFilter.addEventListener('change', fetchRestaurants);
+        halalfilter.addEventListener('change', fetchRestaurants);
     });
 </script>
 {% endblock %}

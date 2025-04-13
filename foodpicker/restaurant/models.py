@@ -63,6 +63,7 @@ class Restaurant(models.Model):
     country = models.CharField(_("Country"), max_length=100, blank=True)
     submitted_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     approved = models.BooleanField(_("Approved"), default=False)
+    halal = models.BooleanField(_("Halal"), default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -95,6 +96,7 @@ class Restaurant(models.Model):
             postal_code=self.postal_code,
             country=self.country,
             submitted_by=self.submitted_by,
+            halal=self.halal,
         )
         self.delete()
 
@@ -128,6 +130,7 @@ class ApprovedRestaurant(models.Model):
     postal_code = models.CharField(_("Postal Code"), max_length=20, blank=True)
     country = models.CharField(_("Country"), max_length=100, blank=True)
     submitted_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    halal = models.BooleanField(_("Halal"), default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
