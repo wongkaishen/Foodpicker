@@ -50,7 +50,7 @@ class RestaurantForm(forms.ModelForm):
             'opentime', 'closetime',
             'delivery_available', 'takeout_available',
             'street_address', 'city', 'state', 'postal_code', 'country',
-            'latitude', 'longitude',
+            'latitude', 'longitude', 'image',  # Added image field
         ]
         exclude = ['id', 'created_at', 'updated_at', 'approved', 'submitted_by']
         widgets = {

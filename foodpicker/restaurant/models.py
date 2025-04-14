@@ -64,6 +64,7 @@ class Restaurant(models.Model):
     submitted_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     approved = models.BooleanField(_("Approved"), default=False)
     halal = models.BooleanField(_("Halal"), default=False)
+    image = models.ImageField(_("Image"), upload_to="restaurant_images/", blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -97,6 +98,7 @@ class Restaurant(models.Model):
             country=self.country,
             submitted_by=self.submitted_by,
             halal=self.halal,
+            image=self.image,  # Include the image field
         )
         self.delete()
 
@@ -131,6 +133,7 @@ class ApprovedRestaurant(models.Model):
     country = models.CharField(_("Country"), max_length=100, blank=True)
     submitted_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     halal = models.BooleanField(_("Halal"), default=False)
+    image = models.ImageField(_("Image"), upload_to="approved_restaurant_images/", blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

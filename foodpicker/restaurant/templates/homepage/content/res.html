@@ -486,7 +486,9 @@
         <div class="restaurant-grid">
             {% for restaurant in restaurants %}
             <div class="restaurant-card {{ forloop.counter0|animation_delay }}">
-                <div class="restaurant-image" style="background-image: url('{% static "img/hero-bg.png" %}')">
+                <div class="restaurant-image" >
+                    <img src="{{ restaurant.image.url }}">
+                </div>
                     <span class="price-badge">{{ restaurant.price_range }}</span>
                 </div>
                 <div class="restaurant-info">

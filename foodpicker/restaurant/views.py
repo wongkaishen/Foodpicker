@@ -355,7 +355,7 @@ def restaurants_within_radius(request):
 @signup_required
 def location_view(request):
     if request.method == "POST":
-        form = RestaurantForm(request.POST)
+        form = RestaurantForm(request.POST, request.FILES)
         if form.is_valid():
             restaurant = form.save(commit=False)
 

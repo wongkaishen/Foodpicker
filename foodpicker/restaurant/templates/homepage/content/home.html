@@ -160,7 +160,7 @@
         <div class="featured-grid" id="featured-restaurants">
             {% for restaurant in featured_restaurants %}
             <div class="restaurant-card">
-                <div class="restaurant-image" style="background-image: url('{% static "img/hero-bg.png" %}')"></div>
+                <div class="restaurant-image" style="background-image: url('{{ restaurant.image.url|default:'/static/img/default_image.jpg' }}');"></div>
                 <div class="restaurant-info">
                     <h3 class="restaurant-name">{{ restaurant.name }}</h3>
                     <p class="restaurant-cuisine">Cuisine: {{ restaurant.get_cuisine_type_display }}</p>
