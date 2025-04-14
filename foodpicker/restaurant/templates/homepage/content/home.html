@@ -158,11 +158,19 @@
     <div class="container">
         <h2 class="section-title">Featured Restaurants</h2>
         <div class="featured-grid" id="featured-restaurants">
-            <!-- Featured restaurants will be loaded here -->
-            <div class="loading-spinner">
-                <div class="spinner"></div>
-                <p>Loading restaurants...</p>
+            {% for restaurant in featured_restaurants %}
+            <div class="restaurant-card">
+                <div class="restaurant-image" style="background-image: url('pp.jpg')"></div>
+                <div class="restaurant-info">
+                    <h3 class="restaurant-name">{{ restaurant.name }}</h3>
+                    <p class="restaurant-cuisine">Cuisine: {{ restaurant.get_cuisine_type_display }}</p>
+                    <p class="restaurant-price">Price: {{ restaurant.get_price_range_display }}</p>
+                    <p class="restaurant-rating">Rating: {{ restaurant.average_rating }}</p>
+                    <p class="restaurant-halal">Halal: {{ restaurant.halal|yesno:"Yes,No" }}</p>
+                    <a href="{% url 'restaurant_detail' restaurant.id %}" class="restaurant-link">View Details</a>
+                </div>
             </div>
+            {% endfor %}
         </div>
     </div>
 </section>
@@ -664,76 +672,7 @@
 
 <!-- JavaScript for Featured Restaurants -->
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Fetch featured restaurants (top 3 by rating)
-        fetch('/api/featured-restaurants/')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                displayFeaturedRestaurants(data.restaurants);
-            })
-            .catch(error => {
-                console.error('Error fetching restaurants:', error);
-                document.getElementById('featured-restaurants').innerHTML = `
-                    <div class="error-message" style="grid-column: 1 / -1; text-align: center; padding: 2rem;">
-                        <p>Unable to load restaurants at this time. Please try again later.</p>
-                    </div>
-                `;
-            });
-
-        const messagePopups = document.querySelectorAll('.message-popup');
-        messagePopups.forEach(popup => {
-            // Show the popup with a fade-in effect
-            popup.style.opacity = 0;
-            popup.style.transition = 'opacity 0.5s';
-            setTimeout(() => popup.style.opacity = 1, 100);
-
-            // Automatically hide the popup after 5 seconds
-            setTimeout(() => {
-                popup.style.opacity = 0;
-                setTimeout(() => popup.remove(), 500); // Remove the element after fade-out
-            }, 5000);
-        });
-    });
-
-    function displayFeaturedRestaurants(restaurants) {
-        const container = document.getElementById('featured-restaurants');
-        
-        // If no restaurants, show a message
-        if (!restaurants || restaurants.length === 0) {
-            container.innerHTML = `
-                <div class="error-message" style="grid-column: 1 / -1; text-align: center; padding: 2rem;">
-                    <p>No featured restaurants available at this time.</p>
-                </div>
-            `;
-            return;
-        }
-
-        // Clear loading spinner
-        container.innerHTML = '';
-        
-        // Add restaurant cards
-        restaurants.forEach(restaurant => {
-            const card = document.createElement('div');
-            card.className = 'restaurant-card';
-            
-            card.innerHTML = `
-                <div class="restaurant-image" style="background-image: url('/static/img/restaurant-placeholder.jpg');"></div>
-                <div class="restaurant-info">
-                    <h3 class="restaurant-name">${restaurant.name}</h3>
-                    <p class="restaurant-cuisine">${restaurant.cuisine_type}</p>
-                    <p class="restaurant-price">${restaurant.price_range}</p>
-                    <a href="/restaurant/${restaurant.id}/" class="restaurant-link">View Details</a>
-                </div>
-            `;
-            
-            container.appendChild(card);
-        });
-    }
+    
 </script>
 
 {% endblock %}

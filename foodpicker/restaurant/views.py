@@ -28,7 +28,13 @@ def reset_pass(request):
     return render(request, "homepage/accounts/forgotpass.html", context)
 
 def home(request):  # home view point
-    context = {"title": "Home"}
+    # Fetch the top 3 featured restaurants based on latest approved and top rating
+    featured_restaurants = ApprovedRestaurant.objects.order_by('-average_rating', '-id')[:3]
+
+    context = {
+        "title": "Home",
+        "featured_restaurants": featured_restaurants,
+    }
     return render(
         request,
         "homepage/content/home.html",
@@ -279,27 +285,6 @@ def get_res_map(request):
     }
     return render(request, "homepage/content/map.html", context)
 
-def featured_restaurants_api(request):
-    """API endpoint to fetch featured restaurants (top rated)."""
-    try:
-        # Get top 3 restaurants by rating that are approved
-        restaurants = Restaurant.objects.filter(approved=True).order_by('-average_rating')[:3]
-        
-        # Format the restaurant data
-        restaurant_data = []
-        for ApprovedRestaurant in restaurants:
-            restaurant_data.append({
-                'id': ApprovedRestaurant.id,
-                'name': ApprovedRestaurant.name,
-                'cuisine_type': ApprovedRestaurant.get_cuisine_type_display(),
-                'price_range': ApprovedRestaurant.price_range,
-                'average_rating': ApprovedRestaurant.average_rating,
-                'city': ApprovedRestaurant.city
-            })
-        
-        return JsonResponse({'restaurants': restaurant_data})
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
 
 def geocode_address(address):
     """Geocode an address using OpenStreetMap (Nominatim)."""
