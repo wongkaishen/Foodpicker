@@ -1,5 +1,6 @@
-{% extends 'homepage/content/main.html' %} {% load static %} {% load
-restaurant_filters %} {% block content %}
+{% extends 'homepage/content/main.html' %}
+{% load static restaurant_filters %}
+{% block content %}
 <style>
   /* Main Container */
   .restaurants-container {
@@ -516,7 +517,7 @@ restaurant_filters %} {% block content %}
     {% if restaurants %}
     <div class="restaurant-grid">
       {% for restaurant in restaurants %}
-      <div class="restaurant-card {{ forloop.counter0|animation_delay }}">
+      <div class="restaurant-card delay-{{ forloop.counter0|modulo:10 }}">
         <div class="restaurant-image">
           <div
             class="restaurant-image"
@@ -531,7 +532,7 @@ restaurant_filters %} {% block content %}
           >
             {{ restaurant.name }}
           </a>
-          <div class="restaurant-meta">
+          <div class="restaurant-meta">  
             <span class="cuisine-type"
               >{{ restaurant.get_cuisine_type_display }}</span
             >
