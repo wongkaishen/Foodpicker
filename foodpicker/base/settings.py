@@ -43,10 +43,11 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 DEBUG = True
 
 
-ALLOWED_HOSTS = ['127.0.0.1', '.vercel.app','localhost' ]
+ALLOWED_HOSTS = ['*']
 
 LOGIN_URL = "/signup/"
 
+    
 
 # Application definition
 
