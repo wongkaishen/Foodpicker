@@ -264,8 +264,13 @@
             </div>
           </div>
           <div class="form-group">
-            <label class="form-label">Upload Restaurant Image</label>
-            <input type="file" name="image" class="form-control" accept="image/*">
+            <label class="form-label">Upload Restaurant Image (Optional)</label>
+            <div class="image-upload-wrapper">
+                <input type="file" name="image" class="form-control" accept="image/*">
+                <small class="form-text text-muted">
+                    You can submit the restaurant without an image. A default image will be used.
+                </small>
+            </div>
           </div>
 
           <div class="divider">
@@ -1177,6 +1182,34 @@
     flex: 1;
     min-width: 150px;
   }
+
+  .image-upload-wrapper {
+    position: relative;
+  }
+
+  .image-upload-wrapper .form-text {
+    margin-top: 0.5rem;
+    display: block;
+  }
+
+  /* Add this to your existing styles */
+  .form-control[type="file"] {
+    padding: 0.5rem;
+    line-height: 1.5;
+  }
+
+  .form-control[type="file"]::-webkit-file-upload-button {
+    padding: 0.375rem 0.75rem;
+    margin: -0.5rem 1rem -0.5rem -0.5rem;
+    border: none;
+    background-color: #e9ecef;
+    color: #212529;
+    transition: all 0.2s ease;
+  }
+
+  .form-control[type="file"]::-webkit-file-upload-button:hover {
+    background-color: #dde0e3;
+  }
 </style>
 
 <script>
@@ -1211,27 +1244,266 @@
     });
 
     // Current location button
-    document
-      .getElementById("current-location")
-      .addEventListener("click", function () {
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-            function (position) {
-              const latlng = {
-                lat: position.coords.latitude,
-                lng: position.coords.longitude,
-              };
-              map.setView(latlng, 16);
-              updateMarkerPosition(latlng);
-            },
-            function (error) {
-              alert("Error getting location: " + error.message);
+    document.getElementById("current-location").addEventListener("click", function() {
+      const button = this;
+      button.disabled = true;
+      button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Getting location...';
+    
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          function(position) {
+            const latlng = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            };
+    
+            // Show loading state while we verify the location
+            const successMsg = document.createElement("div");
+            successMsg.className = "alert alert-info alert-dismissible fade show";
+            successMsg.innerHTML = `
+              <div class="alert-content">
+                <i class="fas fa-info-circle alert-icon"></i>
+                <div class="alert-text">Verifying location...</div>
+              </div>
+            `;
+            document.querySelector(".alert-container").appendChild(successMsg);
+    
+            // Verify the location is in Malaysia
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latlng.lat}&lon=${latlng.lng}&addressdetails=1`)
+              .then(response => response.json())
+              .then(data => {
+                if (data.error) {
+                  throw new Error("Could not verify location");
+                }
+    
+                // Check if the location is in Malaysia
+                if (data.address && data.address.country === "Malaysia") {
+                  map.setView(latlng, 16);
+                  updateMarkerPosition(latlng);
+                  
+                  // Update success message
+                  successMsg.innerHTML = `
+                    <div class="alert-content">
+                      <i class="fas fa-check-circle alert-icon"></i>
+                      <div class="alert-text">Location found in ${data.address.state || data.address.city || "Malaysia"}</div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                  `;
+                  successMsg.className = "alert alert-success alert-dismissible fade show";
+                } else {
+                  throw new Error("Location must be in Malaysia");
+                }
+              })
+              .catch(error => {
+                successMsg.remove();
+                const errorMsg = document.createElement("div");
+                errorMsg.className = "alert alert-danger alert-dismissible fade show";
+                errorMsg.innerHTML = `
+                  <div class="alert-content">
+                    <i class="fas fa-exclamation-circle alert-icon"></i>
+                    <div class="alert-text">
+                      <strong>Error:</strong> ${error.message === "Location must be in Malaysia" ? 
+                        "Your current location appears to be outside Malaysia. Please select a location within Malaysia." : 
+                        "Could not verify your location. Please try again or select location manually."}
+                    </div>
+                  </div>
+                  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                document.querySelector(".alert-container").appendChild(errorMsg);
+              })
+              .finally(() => {
+                setTimeout(() => successMsg.remove(), 3000);
+                button.disabled = false;
+                button.innerHTML = '<i class="fas fa-crosshairs"></i> Use Current Location';
+              });
+          },
+          function(error) {
+            const errorMsg = document.createElement("div");
+            errorMsg.className = "alert alert-danger alert-dismissible fade show";
+            errorMsg.innerHTML = `
+              <div class="alert-content">
+                <i class="fas fa-exclamation-circle alert-icon"></i>
+                <div class="alert-text">
+                  <strong>Error:</strong> ${getGeolocationErrorMessage(error)}
+                </div>
+              </div>
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            document.querySelector(".alert-container").appendChild(errorMsg);
+            button.disabled = false;
+            button.innerHTML = '<i class="fas fa-crosshairs"></i> Use Current Location';
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+          }
+        );
+      } else {
+        alert("Geolocation is not supported by your browser");
+        button.disabled = false;
+        button.innerHTML = '<i class="fas fa-crosshairs"></i> Use Current Location';
+      }
+    });
+    
+    function getGeolocationErrorMessage(error) {
+      switch(error.code) {
+        case error.PERMISSION_DENIED:
+          return "Location permission was denied. Please enable location access in your browser settings.";
+        case error.POSITION_UNAVAILABLE:
+          return "Location information is unavailable. Please try again or select location manually.";
+        case error.TIMEOUT:
+          return "Location request timed out. Please check your connection and try again.";
+        default:
+          return "An unknown error occurred while getting your location.";
+      }
+    }
+    
+    function updateMarkerPosition(latlng) {
+      if (marker) {
+        map.removeLayer(marker);
+      }
+    
+      marker = L.marker(latlng, { draggable: true }).addTo(map);
+    
+      // Create popup content with more detailed information
+      const popupContent = document.createElement("div");
+      popupContent.className = "location-popup";
+      
+      // Start with loading state
+      popupContent.innerHTML = `
+        <p>Verifying location...</p>
+        <div class="coordinates">
+          ${latlng.lat.toFixed(6)}, ${latlng.lng.toFixed(6)}
+        </div>
+        <div class="loading-spinner">
+          <i class="fas fa-spinner fa-spin"></i>
+        </div>
+      `;
+    
+      const popup = L.popup().setContent(popupContent);
+      marker.bindPopup(popup).openPopup();
+    
+      // Verify location is in Malaysia and get address details
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latlng.lat}&lon=${latlng.lng}&addressdetails=1`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.error) throw new Error("Could not verify location");
+    
+          if (data.address && data.address.country === "Malaysia") {
+            const address = [
+              data.address.road,
+              data.address.suburb,
+              data.address.city || data.address.town || data.address.village,
+              data.address.state,
+              "Malaysia"
+            ].filter(Boolean).join(", ");
+    
+            popupContent.innerHTML = `
+              <p>Selected Location</p>
+              <div class="address">${address}</div>
+              <div class="coordinates">
+                ${latlng.lat.toFixed(6)}, ${latlng.lng.toFixed(6)}
+              </div>
+              <button class="confirm-location">
+                <i class="fas fa-check"></i> Confirm Location
+              </button>
+            `;
+    
+            // Add click handler to confirm button
+            const confirmBtn = popupContent.querySelector(".confirm-location");
+            if (confirmBtn) {
+              confirmBtn.addEventListener("click", function() {
+                reverseGeocode(latlng);
+                marker.closePopup();
+              });
             }
-          );
-        } else {
-          alert("Geolocation is not supported by your browser");
-        }
+          } else {
+            popupContent.innerHTML = `
+              <p class="error-text">Location Error</p>
+              <div class="error-message">Please select a location within Malaysia</div>
+              <div class="coordinates">
+                ${latlng.lat.toFixed(6)}, ${latlng.lng.toFixed(6)}
+              </div>
+            `;
+          }
+        })
+        .catch(error => {
+          popupContent.innerHTML = `
+            <p class="error-text">Verification Error</p>
+            <div class="error-message">Could not verify this location</div>
+            <div class="coordinates">
+              ${latlng.lat.toFixed(6)}, ${latlng.lng.toFixed(6)}
+            </div>
+          `;
+        });
+    
+      // Handle marker drag
+      marker.on("dragend", function(e) {
+        updateMarkerPosition(e.target.getLatLng());
       });
+    }
+    
+    // Add these styles to improve the popup appearance
+    const style = document.createElement('style');
+    style.textContent = `
+      .location-popup {
+        text-align: center;
+        padding: 8px;
+      }
+    
+      .location-popup .address {
+        font-size: 0.9rem;
+        margin: 8px 0;
+        color: #666;
+      }
+    
+      .location-popup .coordinates {
+        font-size: 0.8rem;
+        color: #888;
+        margin: 8px 0;
+        font-family: monospace;
+      }
+    
+      .location-popup .error-text {
+        color: #dc3545;
+        font-weight: 500;
+        margin: 0;
+      }
+    
+      .location-popup .error-message {
+        color: #dc3545;
+        font-size: 0.9rem;
+        margin: 8px 0;
+      }
+    
+      .location-popup .loading-spinner {
+        color: #0468aa;
+        margin: 8px 0;
+      }
+    
+      .location-popup .confirm-location {
+        background: #0468aa;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        margin-top: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+    
+      .location-popup .confirm-location:hover {
+        background: #035289;
+      }
+    `;
+    document.head.appendChild(style);
+    
 
     // Reset map button
     document.getElementById("reset-map").addEventListener("click", function () {
@@ -1576,7 +1848,7 @@
     // Geocoding button functionality
     document
       .getElementById("geocode-address")
-      .addEventListener("click", function () {
+      .addEventListener("click", async function () {
         const address = {
           street: streetInput.value,
           city: cityInput.value,
@@ -1593,30 +1865,198 @@
           return;
         }
 
-        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-          addressString
-        )}&countrycodes=MY&limit=1`;
+        // Show loading state
+        this.disabled = true;
+        this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Searching...';
 
-        fetch(url)
-          .then((response) => response.json())
-          .then((data) => {
-            if (data.length > 0) {
-              const location = data[0];
-              const latlng = {
-                lat: parseFloat(location.lat),
-                lng: parseFloat(location.lon),
-              };
-              map.setView(latlng, 16);
-              updateMarkerPosition(latlng);
-            } else {
-              alert("Location not found. Please try a different address.");
+        const result = await enhancedGeocode(addressString);
+
+        this.disabled = false;
+        this.innerHTML = '<i class="fas fa-search-location"></i> Find Address';
+
+        if (result.success) {
+          const location = result.location;
+          const latlng = {
+            lat: parseFloat(location.lat),
+            lng: parseFloat(location.lon),
+          };
+
+          // If there are alternative results, show them to the user
+          if (result.alternatives && result.alternatives.length > 0) {
+            const alternatives = result.alternatives
+              .map((alt, index) => `${index + 2}. ${alt.display_name}`)
+              .join("\n");
+
+            const confirmMessage =
+              `Multiple locations found. Please select:\n\n` +
+              `1. ${location.display_name}\n${alternatives}\n\n` +
+              `Press OK to use the first option, or Cancel to try a more specific address.`;
+
+            if (!confirm(confirmMessage)) {
+              return;
             }
-          })
-          .catch((error) => {
-            console.error("Error:", error);
-            alert("Error geocoding address. Please try again.");
-          });
+          }
+
+          map.setView(latlng, 16);
+          updateMarkerPosition(latlng);
+
+          // Update form fields with the geocoded data
+          if (location.address) {
+            streetInput.value =
+              location.address.road || location.address.street || "";
+            cityInput.value =
+              location.address.city ||
+              location.address.town ||
+              location.address.village ||
+              "";
+            stateInput.value = location.address.state || "";
+            postalCodeInput.value = location.address.postcode || "";
+          }
+        } else {
+          alert(
+            `Could not find the location. Please try:\n1. Adding more address details\n2. Checking for typos\n3. Using the map to pick the location manually`
+          );
+        }
       });
+
+    // Form validation function
+    function validateLocationData() {
+      const requiredFields = {
+        latitude: latitudeInput,
+        longitude: longitudeInput,
+        street: streetInput,
+        city: cityInput,
+        state: stateInput,
+        postal: postalCodeInput,
+      };
+
+      let isValid = true;
+      let missingFields = [];
+
+      for (const [field, input] of Object.entries(requiredFields)) {
+        if (!input.value.trim()) {
+          isValid = false;
+          missingFields.push(field);
+          input.classList.add("is-invalid");
+        } else {
+          input.classList.remove("is-invalid");
+        }
+      }
+
+      return { isValid, missingFields };
+    }
+
+    // Enhanced geocoding function with better error handling
+    async function enhancedGeocode(addressString) {
+      try {
+        // First try with strict parameters
+        let url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+          addressString
+        )}&countrycodes=MY&addressdetails=1&limit=1&bounded=1`;
+
+        let response = await fetch(url);
+        let data = await response.json();
+
+        // If no results, try with less strict parameters
+        if (data.length === 0) {
+          url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+            addressString
+          )}&countrycodes=MY&addressdetails=1&limit=3`;
+          response = await fetch(url);
+          data = await response.json();
+        }
+
+        if (data.length > 0) {
+          return {
+            success: true,
+            location: data[0],
+            alternatives: data.slice(1),
+          };
+        }
+
+        return {
+          success: false,
+          error: "Location not found",
+        };
+      } catch (error) {
+        console.error("Geocoding error:", error);
+        return {
+          success: false,
+          error: "Geocoding service error",
+        };
+      }
+    }
+
+    // Modify the form submit handler
+    document
+      .querySelector("form")
+      .addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        const { isValid, missingFields } = validateLocationData();
+
+        if (!isValid) {
+          const errorMsg = document.createElement("div");
+          errorMsg.className =
+            "alert alert-danger alert-dismissible fade show";
+          errorMsg.innerHTML = `
+          <div class="alert-content">
+            <i class="fas fa-exclamation-circle alert-icon"></i>
+            <div class="alert-text">
+              <strong>Error:</strong> Please fill in all required location fields: ${missingFields.join(
+                ", "
+              )}
+            </div>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+          document.querySelector(".alert-container").appendChild(errorMsg);
+          return;
+        }
+
+        // Verify coordinates with reverse geocoding
+        const lat = parseFloat(latitudeInput.value);
+        const lng = parseFloat(longitudeInput.value);
+
+        if (!isNaN(lat) && !isNaN(lng)) {
+          try {
+            const verificationUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
+            const response = await fetch(verificationUrl);
+            const data = await response.json();
+
+            if (data.error) {
+              throw new Error("Invalid coordinates");
+            }
+
+            // Verify the returned address matches the input address approximately
+            const inputAddress = `${streetInput.value}, ${cityInput.value}, ${stateInput.value}`.toLowerCase();
+            const returnedAddress = data.display_name.toLowerCase();
+
+            if (
+              !returnedAddress.includes(cityInput.value.toLowerCase()) ||
+              !returnedAddress.includes(stateInput.value.toLowerCase())
+            ) {
+              const confirmContinue = confirm(
+                "The coordinates might not match the provided address exactly. Do you want to:\n\n" +
+                  "1. Continue with current location (OK)\n" +
+                  "2. Review and adjust the location (Cancel)"
+              );
+
+              if (!confirmContinue) {
+                return;
+              }
+            }
+          } catch (error) {
+            alert("Please verify the location coordinates are correct.");
+            return;
+          }
+        }
+
+        // If all validations pass, submit the form
+        this.submit();
+      });
+
+    // ...rest of existing code...
   });
 </script>
 

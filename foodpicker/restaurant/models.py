@@ -3,6 +3,11 @@ from geopy.distance import geodesic
 from django.contrib.auth.models import User
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.conf import settings
+import os
+
+def get_default_restaurant_image():
+    return os.path.join('default', 'default-restaurant.jpg')
 
 class ContactMessage(models.Model):
     name = models.CharField(_("Name"), max_length=100)
@@ -64,7 +69,11 @@ class Restaurant(models.Model):
     submitted_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     approved = models.BooleanField(_("Approved"), default=False)
     halal = models.BooleanField(_("Halal"), default=False)
-    image = models.ImageField(_("Image"), upload_to="restaurant_images/", blank=True, null=True)
+    image = models.ImageField(_("Image"), 
+                            upload_to="restaurant_images/", 
+                            blank=True, 
+                            null=True,
+                            default=get_default_restaurant_image)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -133,7 +142,11 @@ class ApprovedRestaurant(models.Model):
     country = models.CharField(_("Country"), max_length=100, blank=True)
     submitted_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     halal = models.BooleanField(_("Halal"), default=False)
-    image = models.ImageField(_("Image"), upload_to="approved_restaurant_images/", blank=True, null=True)
+    image = models.ImageField(_("Image"), 
+                            upload_to="approved_restaurant_images/", 
+                            blank=True, 
+                            null=True,
+                            default=get_default_restaurant_image)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

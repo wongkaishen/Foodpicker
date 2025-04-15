@@ -19,6 +19,11 @@
                 <span class="rating">
                     <i class="ri-star-fill"></i> {{ restaurant.average_rating|floatformat:1 }}
                 </span>
+                {% if restaurant.halal %}
+                <span class="halal-badge">
+                    <i class="ri-check-line"></i> Halal Certified
+                </span>
+                {% endif %}
             </div>
             <div class="restaurant-tags">
                 {% if restaurant.delivery_available %}
@@ -40,6 +45,12 @@
             <div class="info-card">
                 <h2>About</h2>
                 <p class="restaurant-description">{{ restaurant.description }}</p>
+                {% if restaurant.halal %}
+                <div class="halal-info">
+                    <i class="ri-check-line"></i>
+                    <span>This restaurant is Halal certified</span>
+                </div>
+                {% endif %}
             </div>
 
             <div class="info-card contact-card">
@@ -84,21 +95,30 @@
                         </div>
                         <div class="contact-details">
                             <span class="contact-label">Address</span>
+                            {% if restaurant.get_full_address %}
                             <span class="contact-address">{{ restaurant.get_full_address }}</span>
+                            {% else %}
+                            <span class="contact-address no-location">Location information not available</span>
+                            {% endif %}
                         </div>
                     </div>
+
                     <div class="contact-actions">
+                        {% if restaurant.get_full_address %}
                         <button class="action-button copy-address" data-address="{{ restaurant.get_full_address }}">
                             <i class="ri-file-copy-line"></i> Copy Address
                         </button>
+                        {% endif %}
                         {% if restaurant.phone %}
                         <button class="action-button share-contact" data-name="{{ restaurant.name }}" data-phone="{{ restaurant.phone }}">
                             <i class="ri-share-line"></i> Share Contact
                         </button>
                         {% endif %}
+                        {% if restaurant.get_full_address %}
                         <button class="action-button add-calendar" data-name="{{ restaurant.name }}" data-address="{{ restaurant.get_full_address }}">
                             <i class="ri-calendar-line"></i> Add to Calendar
                         </button>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -113,12 +133,12 @@
                     {% endif %}
                 </div>
             </div>
-
         </div>
 
         <div class="map-section">
             <div class="map-card">
                 <h2><i class="ri-map-pin-line"></i> Location</h2>
+                {% if restaurant.latitude and restaurant.longitude %}
                 <div id="map"></div>
                 <div class="map-actions">
                     <a href="https://www.google.com/maps/dir/?api=1&destination={{ restaurant.latitude }},{{ restaurant.longitude }}" 
@@ -129,11 +149,21 @@
                         <i class="ri-share-line"></i> Share Location
                     </button>
                 </div>
+                {% else %}
+                <div class="no-location-map">
+                    <i class="ri-map-pin-line"></i>
+                    <p>Map location not available</p>
+                </div>
+                {% endif %}
             </div>
             <div class="info-card">
                 <h2>Location</h2>
                 <div class="address-info">
+                    {% if restaurant.get_full_address %}
                     <p>{{ restaurant.get_full_address }}</p>
+                    {% else %}
+                    <p class="no-location">Location information not available</p>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -157,7 +187,8 @@
     }
 
     .restaurant-header {
-        background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('{% static "img/restaurant-placeholder.jpg" %}');
+        background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), 
+            url('{% if restaurant.image %}{{ restaurant.image.url }}{% else %}{% static "img/restaurant-placeholder.jpg" %}{% endif %}');
         background-size: cover;
         background-position: center;
         color: white;
@@ -180,7 +211,7 @@
         flex-wrap: wrap;
     }
 
-    .cuisine-type, .price-range, .rating {
+    .cuisine-type, .price-range, .rating, .halal-badge {
         background-color: rgba(255, 255, 255, 0.2);
         padding: 0.3rem 0.8rem;
         border-radius: 20px;
@@ -188,6 +219,16 @@
         display: inline-flex;
         align-items: center;
         gap: 0.3rem;
+    }
+
+    .halal-badge {
+        background-color: rgba(76, 175, 80, 0.3);
+        color: #fff;
+        font-weight: 500;
+    }
+
+    .halal-badge i {
+        color: #4CAF50;
     }
 
     .rating i {
@@ -234,6 +275,22 @@
 
     .restaurant-description {
         line-height: 1.6;
+    }
+
+    .halal-info {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 1rem;
+        padding: 0.8rem;
+        background-color: rgba(76, 175, 80, 0.1);
+        border-radius: 8px;
+        color: #2e7d32;
+    }
+
+    .halal-info i {
+        font-size: 1.2rem;
+        color: #4CAF50;
     }
 
     .contact-card {
@@ -502,6 +559,33 @@
 
     .map-card h2 i {
         color: var(--first-color);
+    }
+
+    .no-location {
+        color: #666;
+        font-style: italic;
+    }
+
+    .no-location-map {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 3rem;
+        background: #f5f5f5;
+        border-radius: 8px;
+        color: #666;
+    }
+
+    .no-location-map i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: #999;
+    }
+
+    .no-location-map p {
+        font-style: italic;
+        margin: 0;
     }
 
     /* Responsive adjustments */

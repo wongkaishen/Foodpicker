@@ -160,7 +160,13 @@
         <div class="featured-grid" id="featured-restaurants">
             {% for restaurant in featured_restaurants %}
             <div class="restaurant-card">
-                <div class="restaurant-image" style="background-image: url('{{ restaurant.image.url|default:'/static/img/default_image.jpg' }}');"></div>
+                <div class="restaurant-image" style="background-image: url('{% if restaurant.image %}{{ restaurant.image.url }}{% else %}{% static 'img/default-restaurant.jpg' %}{% endif %}');">
+                    {% if not restaurant.image %}
+                    <div class="no-image-overlay">
+                        <i class="ri-restaurant-2-line"></i>
+                    </div>
+                    {% endif %}
+                </div>
                 <div class="restaurant-info">
                     <h3 class="restaurant-name">{{ restaurant.name }}</h3>
                     <p class="restaurant-cuisine">Cuisine: {{ restaurant.get_cuisine_type_display }}</p>
@@ -488,6 +494,25 @@
         height: 200px;
         background-size: cover;
         background-position: center;
+        position: relative;
+        background-color: #f8f9fa;
+    }
+
+    .no-image-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: rgba(0, 0, 0, 0.1);
+    }
+
+    .no-image-overlay i {
+        font-size: 3rem;
+        color: #6c757d;
     }
 
     .restaurant-info {
