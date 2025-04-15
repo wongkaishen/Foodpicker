@@ -111,6 +111,26 @@ class Restaurant(models.Model):
         )
         self.delete()
 
+    def is_currently_open(self):
+        """Check if the restaurant is currently open."""
+        from datetime import datetime
+        current_time = datetime.now().time()
+        
+        if self.opentime and self.closetime:
+            if self.closetime > self.opentime:
+                # Normal case: opening hours are within the same day
+                return self.opentime <= current_time <= self.closetime
+            else:
+                # Case where closing time is after midnight
+                return current_time >= self.opentime or current_time <= self.closetime
+        return False
+
+    def is_open_24_hours(self):
+        """Check if the restaurant is open 24 hours."""
+        if self.opentime and self.closetime:
+            return self.opentime == self.closetime
+        return False
+
 
 class ApprovedRestaurant(models.Model):
     PRICE_CHOICES = Restaurant.PRICE_CHOICES
@@ -157,3 +177,23 @@ class ApprovedRestaurant(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.city})"
+
+    def is_currently_open(self):
+        """Check if the restaurant is currently open."""
+        from datetime import datetime
+        current_time = datetime.now().time()
+        
+        if self.opentime and self.closetime:
+            if self.closetime > self.opentime:
+                # Normal case: opening hours are within the same day
+                return self.opentime <= current_time <= self.closetime
+            else:
+                # Case where closing time is after midnight
+                return current_time >= self.opentime or current_time <= self.closetime
+        return False
+
+    def is_open_24_hours(self):
+        """Check if the restaurant is open 24 hours."""
+        if self.opentime and self.closetime:
+            return self.opentime == self.closetime
+        return False
