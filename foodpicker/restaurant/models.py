@@ -35,12 +35,45 @@ class Restaurant(models.Model):
         ('AMERICAN', 'American'),
         ('INDIAN', 'Indian'),
         ('MEDITERRANEAN', 'Mediterranean'),
+        ('FRENCH', 'French'),
+        ('JAPANESE', 'Japanese'),
+        ('CHINESE', 'Chinese'),
+        ('THAI', 'Thai'),
+        ('KOREAN', 'Korean'),
+        ('VIETNAMESE', 'Vietnamese'),
+        ('GREEK', 'Greek'),
+        ('TURKISH', 'Turkish'),
+        ('MIDDLE_EASTERN', 'Middle Eastern'),
+        ('LATIN', 'Latin American'),
+        ('AFRICAN', 'African'),
+        ('SEAFOOD', 'Seafood'),
+        ('VEGETARIAN', 'Vegetarian'),
+        ('VEGAN', 'Vegan'),
+        ('OTHER', 'Other'),
+    ]
+
+    ESTABLISHMENT_CHOICES = [
+        ('RESTAURANT', 'Restaurant'),
+        ('CAFE', 'Cafe'),
+        ('BAR', 'Bar & Pub'),
+        ('FAST_FOOD', 'Fast Food'),
+        ('BAKERY', 'Bakery'),
+        ('COFFEE_SHOP', 'Coffee Shop'),
+        ('FOOD_TRUCK', 'Food Truck'),
+        ('TAKEAWAY', 'Takeaway'),
+        ('ICE_CREAM', 'Ice Cream Shop'),
+        ('BUFFET', 'Buffet'),
+        ('FINE_DINING', 'Fine Dining'),
+        ('CASUAL_DINING', 'Casual Dining'),
+        ('DELI', 'Deli'),
+        ('JUICE_BAR', 'Juice Bar'),
         ('OTHER', 'Other'),
     ]
 
     name = models.CharField(_("Restaurant Name"), max_length=200)
     description = models.TextField(_("Description"))
     cuisine_type = models.CharField(_("Cuisine Type"), max_length=50, choices=CUISINE_CHOICES, default='OTHER')
+    establishment_type = models.CharField(_("Establishment Type"), max_length=50, choices=ESTABLISHMENT_CHOICES, default='RESTAURANT')
     phone = models.CharField(_("Phone Number"), max_length=20, blank=True)
     email = models.EmailField(_("Email"), blank=True)
     website = models.URLField(_("Website"), blank=True)

@@ -150,7 +150,6 @@
     justify-content: center;
     gap: 2rem;
     margin-top: 1rem;
-    flex-wrap: wrap;
   }
 
   .legend-item {
@@ -174,29 +173,6 @@
     background-color: #04aa6d;
     border: 2px solid white;
   }
-
-  /* Cuisine-specific legend icons */
-  .cuisine-asian { background-color: #ff6b6b; border: 2px solid white; }
-  .cuisine-italian { background-color: #4ecdc4; border: 2px solid white; }
-  .cuisine-mexican { background-color: #ffe66d; border: 2px solid white; }
-  .cuisine-american { background-color: #4dabf7; border: 2px solid white; }
-  .cuisine-indian { background-color: #ff922b; border: 2px solid white; }
-  .cuisine-mediterranean { background-color: #be4bdb; border: 2px solid white; }
-  .cuisine-french { background-color: #91a7ff; border: 2px solid white; }
-  .cuisine-japanese { background-color: #ffc9c9; border: 2px solid white; }
-  .cuisine-chinese { background-color: #ffec99; border: 2px solid white; }
-  .cuisine-thai { background-color: #b2f2bb; border: 2px solid white; }
-  .cuisine-korean { background-color: #ffd3a5; border: 2px solid white; }
-  .cuisine-vietnamese { background-color: #fd79a8; border: 2px solid white; }
-  .cuisine-other { background-color: #04AA6D; border: 2px solid white; }
-  
-  /* Establishment-specific legend icons */
-  .establishment-cafe { background-color: #8b5cf6; border: 2px solid white; }
-  .establishment-bar { background-color: #f59e0b; border: 2px solid white; }
-  .establishment-bakery { background-color: #ec4899; border: 2px solid white; }
-  .establishment-fast-food { background-color: #ef4444; border: 2px solid white; }
-  .establishment-coffee { background-color: #6366f1; border: 2px solid white; }
-  .establishment-ice-cream { background-color: #06b6d4; border: 2px solid white; }
 
   .popup-content {
     font-size: 0.95rem;
@@ -312,9 +288,9 @@
   </div>
   {% endfor %}
 
-  <h1 class="page-title">Discover All Food Establishments Near You</h1>
+  <h1 class="page-title">Discover Restaurants Near You</h1>
   <p class="map-subtitle">
-    Explore all dining options including restaurants, cafes, bars, bakeries, and more with real-time data from Google Places API
+    Explore dining options in your area and find your next favorite spot
   </p>
 
   <div class="map-controls">
@@ -334,16 +310,6 @@
         <select id="cuisineFilter" class="form-select">
           <option value="">All Cuisines</option>
           {% for code, name in cuisine_choices %}
-            <option value="{{ code }}">{{ name }}</option>
-          {% endfor %}
-        </select>
-      </div>
-
-      <div class="filter-group">
-        <label for="establishmentFilter">Type:</label>
-        <select id="establishmentFilter" class="form-select">
-          <option value="">All Types</option>
-          {% for code, name in establishment_choices %}
             <option value="{{ code }}">{{ name }}</option>
           {% endfor %}
         </select>
@@ -375,13 +341,6 @@
       >
         <i class="ri-compass-3-line"></i>
       </button>
-      <button
-        id="showAllCategoriesBtn"
-        class="action-btn"
-        title="Show All Food Establishment Categories"
-      >
-        <i class="ri-map-2-line"></i>
-      </button>
     </div>
   </div>
 
@@ -397,55 +356,15 @@
       <div class="legend-icon user-icon"></div>
       <span>Your Location</span>
     </div>
-    
-    <!-- Cuisine Legend -->
     <div class="legend-item">
-      <div class="legend-icon cuisine-asian"></div>
-      <span>Asian</span>
+      <div class="legend-icon restaurant-icon"></div>
+      <span>Restaurant</span>
     </div>
-    <div class="legend-item">
-      <div class="legend-icon cuisine-italian"></div>
-      <span>Italian</span>
-    </div>
-    <div class="legend-item">
-      <div class="legend-icon cuisine-mexican"></div>
-      <span>Mexican</span>
-    </div>
-    <div class="legend-item">
-      <div class="legend-icon cuisine-american"></div>
-      <span>American</span>
-    </div>
-    <div class="legend-item">
-      <div class="legend-icon cuisine-indian"></div>
-      <span>Indian</span>
-    </div>
-    
-    <!-- Establishment Legend -->
-    <div class="legend-item">
-      <div class="legend-icon establishment-cafe"></div>
-      <span>Cafes</span>
-    </div>
-    <div class="legend-item">
-      <div class="legend-icon establishment-bar"></div>
-      <span>Bars</span>
-    </div>
-    <div class="legend-item">
-      <div class="legend-icon establishment-bakery"></div>
-      <span>Bakeries</span>
-    </div>
-    <div class="legend-item">
-      <div class="legend-icon cuisine-other"></div>
-      <span>Other Food Places</span>
-    </div>
-  </div>
-  
-  <div style="text-align: center; margin-top: 1rem; color: #666; font-size: 0.9rem;">
-    <p><strong>Includes:</strong> Restaurants, Cafes, Bars, Bakeries, Fast Food, Takeaway, Food Trucks, Ice Cream Shops, Coffee Shops, and more!</p>
   </div>
 </div>
 
-<!-- Google Maps API -->
-<script async defer src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&libraries=places&callback=initMap"></script>
+<!-- Replace YOUR_GOOGLE_MAPS_API_KEY with your actual API key -->
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&libraries=places&callback=initMap"></script>
 <link
   href="https://unpkg.com/remixicon@2.5.0/fonts/remixicon.css"
   rel="stylesheet"
@@ -461,12 +380,10 @@
   
   const radiusFilter = document.getElementById("radiusFilter");
   const cuisineFilter = document.getElementById("cuisineFilter");
-  const establishmentFilter = document.getElementById("establishmentFilter");
   const priceFilter = document.getElementById("priceFilter");
   const loadingContainer = document.getElementById("loadingContainer");
   const refreshLocationBtn = document.getElementById("refreshLocationBtn");
   const findNearestBtn = document.getElementById("findNearestBtn");
-  const showAllCategoriesBtn = document.getElementById("showAllCategoriesBtn");
 
   function initMap() {
     // Initialize Google Map
@@ -582,7 +499,7 @@
     };
   }
 
-  async function fetchRestaurants(radius, cuisine = "", establishment = "") {
+  async function fetchRestaurants(radius, cuisine = "", price = "") {
     if (!userLat || !userLon) {
       showNotification("User location not available.", "error");
       return;
@@ -601,45 +518,14 @@
         longitude: userLon,
         radius: radius,
         cuisine: cuisine,
-        establishment: establishment
+        price: price
       });
 
-      console.log('Fetching with params:', params.toString());
-      console.log("=== FETCH RESTAURANTS DEBUG ===");
-      console.log("Selected cuisine filter:", cuisine);
-      console.log("Selected establishment filter:", establishment);
-      console.log("Selected radius:", radius);
-      console.log("User latitude:", userLat);
-      console.log("User longitude:", userLon);
-
-      // Use Google Places API endpoint
-      const response = await fetch(`/google_places_restaurants/?${params.toString()}`);
+      const response = await fetch(`/restaurants_within_radius/?${params.toString()}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-
-      // Debug logging
-      console.log('=== API RESPONSE DEBUG ===');
-      console.log('API Response:', data);
-      console.log('Total restaurants found:', data.restaurants.length);
-      console.log('Cuisine breakdown:', data.cuisine_breakdown);
-      console.log('Establishment breakdown:', data.establishment_breakdown);
-      console.log('Filtered out count:', data.filtered_out_count);
-      console.log('Applied cuisine filter:', data.applied_cuisine_filter);
-      console.log('Applied establishment filter:', data.applied_establishment_filter);
-      
-      if (data.restaurants && data.restaurants.length > 0) {
-        console.log("First restaurant example:", data.restaurants[0]);
-        data.restaurants.slice(0, 3).forEach((restaurant, index) => {
-          console.log(`Restaurant ${index + 1}:`, {
-            name: restaurant.name,
-            cuisine_type: restaurant.cuisine_type,
-            establishment_type: restaurant.establishment_type,
-            place_types: restaurant.debug_all_types
-          });
-        });
-      }
 
       if (data.error) {
         showNotification(data.error, "error");
@@ -655,25 +541,10 @@
           "info"
         );
       } else {
-        // Show breakdown by cuisine and establishment type if available
-        let message = `Found ${data.restaurants.length} food establishments within ${radius}km`;
-        
-        if (data.establishment_breakdown) {
-          const estBreakdown = Object.entries(data.establishment_breakdown)
-            .map(([type, count]) => `${type}: ${count}`)
-            .join(', ');
-          message += ` (${estBreakdown})`;
-        }
-        
-        if (data.cuisine_breakdown) {
-          const cuisineBreakdown = Object.entries(data.cuisine_breakdown)
-            .map(([cuisine, count]) => `${cuisine}: ${count}`)
-            .join(', ');
-          message += ` | Cuisines: ${cuisineBreakdown}`;
-        }
-        
-        message += ` from Google Places.`;
-        showNotification(message, "success");
+        showNotification(
+          `Found ${data.restaurants.length} restaurants within ${radius}km.`,
+          "success"
+        );
       }
 
       // Create markers and bounds
@@ -704,74 +575,7 @@
     restaurantMarkers = [];
   }
 
-  // Define cuisine-specific colors
-  const cuisineColors = {
-    'ASIAN': '#ff6b6b',         // Red
-    'ITALIAN': '#4ecdc4',       // Teal  
-    'MEXICAN': '#ffe66d',       // Yellow
-    'AMERICAN': '#4dabf7',      // Blue
-    'INDIAN': '#ff922b',        // Orange
-    'MEDITERRANEAN': '#be4bdb', // Purple
-    'FRENCH': '#91a7ff',        // Light Blue
-    'JAPANESE': '#ffc9c9',      // Light Red
-    'CHINESE': '#ffec99',       // Light Yellow
-    'THAI': '#b2f2bb',          // Light Green
-    'KOREAN': '#ffd3a5',        // Light Orange
-    'VIETNAMESE': '#fd79a8',    // Pink
-    'GREEK': '#74c0fc',         // Sky Blue
-    'TURKISH': '#ffd43b',       // Gold
-    'MIDDLE_EASTERN': '#9775fa', // Violet
-    'LATIN': '#ff8cc8',         // Hot Pink
-    'AFRICAN': '#96f2d7',       // Mint
-    'SEAFOOD': '#339af0',       // Ocean Blue
-    'VEGETARIAN': '#51cf66',    // Green
-    'VEGAN': '#69db7c',         // Bright Green
-    'OTHER': '#04AA6D'          // Green (default)
-  };
-
-  // Define alternative colors for establishments that might not have cuisine info
-  const establishmentColors = {
-    'CAFE': '#8b5cf6',          // Purple
-    'BAR': '#f59e0b',           // Amber
-    'BAKERY': '#ec4899',        // Pink
-    'FAST_FOOD': '#ef4444',     // Red
-    'COFFEE_SHOP': '#6366f1',   // Indigo
-    'ICE_CREAM': '#06b6d4',     // Cyan
-    'FOOD_TRUCK': '#84cc16',    // Lime
-    'TAKEAWAY': '#f97316',      // Orange
-    'RESTAURANT': '#04AA6D',    // Green
-    'FINE_DINING': '#7c3aed',   // Purple
-    'BUFFET': '#f59e0b',        // Amber
-    'DELI': '#06b6d4',          // Cyan
-    'JUICE_BAR': '#10b981',     // Emerald
-    'OTHER': '#6b7280'          // Gray
-  };
-
-  function getCuisineColor(cuisineType, establishmentType) {
-    // First try cuisine-based color
-    if (cuisineType && cuisineColors[cuisineType]) {
-      return cuisineColors[cuisineType];
-    }
-    
-    // Fall back to establishment-based color
-    if (establishmentType && establishmentColors[establishmentType]) {
-      return establishmentColors[establishmentType];
-    }
-    
-    // Default color
-    return cuisineColors['OTHER'];
-  }
-
   function createRestaurantMarker(restaurant) {
-    const cuisineColor = getCuisineColor(restaurant.cuisine_type, restaurant.establishment_type);
-    
-    console.log(`Creating marker for ${restaurant.name}:`, {
-      cuisine: restaurant.cuisine_type,
-      establishment: restaurant.establishment_type,
-      types: restaurant.debug_all_types,
-      color: cuisineColor
-    });
-    
     const marker = new google.maps.Marker({
       position: { lat: restaurant.latitude, lng: restaurant.longitude },
       map: map,
@@ -779,7 +583,7 @@
       icon: {
         path: google.maps.SymbolPath.CIRCLE,
         scale: 10,
-        fillColor: cuisineColor,
+        fillColor: "#04AA6D",
         fillOpacity: 1,
         strokeColor: "#ffffff",
         strokeWeight: 3
@@ -795,12 +599,6 @@
               <i class="ri-map-pin-line"></i>
               <span>Distance: ${restaurant.distance_km.toFixed(2)} km</span>
             </div>
-            ${restaurant.establishment_type ? `
-            <div class="popup-info-item">
-              <i class="ri-store-2-line"></i>
-              <span>Type: ${restaurant.establishment_type}</span>
-            </div>
-            ` : ''}
             <div class="popup-info-item">
               <i class="ri-restaurant-line"></i>
               <span>Cuisine: ${restaurant.cuisine_type || "Various"}</span>
@@ -809,30 +607,8 @@
               <i class="ri-money-dollar-circle-line"></i>
               <span>Price: ${restaurant.price_range || "Various"}</span>
             </div>
-            ${restaurant.rating ? `
-            <div class="popup-info-item">
-              <i class="ri-star-line"></i>
-              <span>Rating: ${restaurant.rating}/5 (${restaurant.user_ratings_total || 0} reviews)</span>
-            </div>
-            ` : ''}
-            ${restaurant.vicinity ? `
-            <div class="popup-info-item">
-              <i class="ri-map-line"></i>
-              <span>Address: ${restaurant.vicinity}</span>
-            </div>
-            ` : ''}
-            ${restaurant.is_open !== null ? `
-            <div class="popup-info-item">
-              <i class="ri-time-line"></i>
-              <span>Status: ${restaurant.is_open ? 'Open Now' : 'Closed'}</span>
-            </div>
-            ` : ''}
           </div>
-          <div class="popup-actions">
-            <a href="https://www.google.com/maps/place/?q=place_id:${restaurant.google_place_id}" target="_blank" rel="noopener noreferrer" class="details-link">
-              <i class="ri-external-link-line"></i> View on Google Maps
-            </a>
-          </div>
+          <a href="/restaurant/${restaurant.id}/" class="details-link">View Details</a>
         </div>
       `
     });
@@ -845,115 +621,25 @@
   }
 
   // Debounced version of fetchRestaurants
-  const debouncedFetchRestaurants = debounce((radius, cuisine, establishment) => {
-    fetchRestaurants(radius, cuisine, establishment);
+  const debouncedFetchRestaurants = debounce((radius, cuisine, price) => {
+    fetchRestaurants(radius, cuisine, price);
   }, FETCH_DELAY);
 
   // Event listeners
   radiusFilter.addEventListener("change", () =>
-    debouncedFetchRestaurants(radiusFilter.value, cuisineFilter.value, establishmentFilter.value)
+    debouncedFetchRestaurants(radiusFilter.value, cuisineFilter.value, priceFilter.value)
   );
 
   cuisineFilter.addEventListener("change", () =>
-    debouncedFetchRestaurants(radiusFilter.value, cuisineFilter.value, establishmentFilter.value)
+    debouncedFetchRestaurants(radiusFilter.value, cuisineFilter.value, priceFilter.value)
   );
 
-  establishmentFilter.addEventListener("change", () =>
-    debouncedFetchRestaurants(radiusFilter.value, cuisineFilter.value, establishmentFilter.value)
-  );
-
-  // Note: Price filter still available in UI but Google Places API handles pricing differently
   priceFilter.addEventListener("change", () =>
-    debouncedFetchRestaurants(radiusFilter.value, cuisineFilter.value, establishmentFilter.value)
+    debouncedFetchRestaurants(radiusFilter.value, cuisineFilter.value, priceFilter.value)
   );
 
   refreshLocationBtn.addEventListener("click", getUserLocation);
   findNearestBtn.addEventListener("click", fetchNearestRestaurant);
-  showAllCategoriesBtn.addEventListener("click", showAllCategories);
-
-  async function showAllCategories() {
-    if (!userLat || !userLon) {
-      showNotification("Please allow location access to view all food establishments by category.", "error");
-      return;
-    }
-
-    loadingContainer.classList.remove("hidden");
-
-    try {
-      // Reset filters to show all categories
-      radiusFilter.value = "15"; // Wider radius to show more restaurants
-      cuisineFilter.value = "";  // All cuisines
-      establishmentFilter.value = ""; // All establishment types
-      priceFilter.value = "";    // All prices
-
-      const params = new URLSearchParams({
-        latitude: userLat,
-        longitude: userLon,
-        radius: 15,
-        cuisine: "",
-        establishment: ""
-      });
-
-      // Use Google Places API endpoint
-      const response = await fetch(`/google_places_restaurants/?${params.toString()}`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-
-      if (data.error) {
-        showNotification(data.error, "error");
-        return;
-      }
-
-      // Clear existing markers
-      clearMarkers();
-
-      if (data.restaurants.length === 0) {
-        showNotification("No restaurants found in the area.", "info");
-        return;
-      }
-
-      // Create markers for all restaurants
-      const bounds = new google.maps.LatLngBounds();
-      
-      data.restaurants.forEach((restaurant) => {
-        const marker = createRestaurantMarker(restaurant);
-        restaurantMarkers.push(marker);
-        bounds.extend(new google.maps.LatLng(restaurant.latitude, restaurant.longitude));
-      });
-
-      // Add user location to bounds and fit map
-      bounds.extend(new google.maps.LatLng(userLat, userLon));
-      map.fitBounds(bounds);
-
-      // Show success message with cuisine breakdown from API response
-      let message = `Showing all ${data.restaurants.length} food establishments by category`;
-      
-      if (data.establishment_breakdown) {
-        const estBreakdown = Object.entries(data.establishment_breakdown)
-          .map(([type, count]) => `${type}: ${count}`)
-          .join(', ');
-        message += ` (${estBreakdown})`;
-      }
-      
-      if (data.cuisine_breakdown) {
-        const cuisineBreakdown = Object.entries(data.cuisine_breakdown)
-          .map(([cuisine, count]) => `${cuisine}: ${count}`)
-          .join(', ');
-        message += ` | Cuisines: ${cuisineBreakdown}`;
-      }
-      
-      message += ` from Google Places.`;
-      showNotification(message, "success");
-
-    } catch (error) {
-      console.error("Error fetching all categories:", error);
-      showNotification("Error loading restaurant categories. Please try again.", "error");
-    } finally {
-      loadingContainer.classList.add("hidden");
-    }
-  }
 
   async function fetchNearestRestaurant() {
     if (!userLat || !userLon) return;
@@ -1012,7 +698,7 @@
     fetchRestaurants(
       radiusFilter.value,
       cuisineFilter.value,
-      establishmentFilter.value
+      priceFilter.value
     );
   }
 

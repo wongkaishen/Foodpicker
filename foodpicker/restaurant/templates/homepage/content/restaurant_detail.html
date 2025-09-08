@@ -140,11 +140,7 @@
     </div>
 </div>
 
-<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
-<script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&callback=initMap"></script>
 
 <style>
     .restaurant-detail-container {
@@ -525,62 +521,68 @@
 </style>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Initialize map
-        const map = L.map('map', {
-            zoomControl: false // We'll add custom zoom controls
-        }).setView([{{ restaurant.latitude }}, {{ restaurant.longitude }}], 15);
-        
-        // Add zoom controls to custom position
-        L.control.zoom({
-            position: 'bottomright'
-        }).addTo(map);
-        
-        // Use a more modern and detailed map style
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-            subdomains: 'abcd',
-            maxZoom: 20
-        }).addTo(map);
-        
-        // Add restaurant marker with custom icon
-        const restaurantIcon = L.divIcon({
-            html: '<div class="pulse-marker"><i class="ri-restaurant-2-fill"></i></div>',
-            className: 'restaurant-marker',
-            iconSize: [40, 40],
-            iconAnchor: [20, 20]
+    function initMap() {
+        // Initialize Google map
+        const map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 15,
+            center: { lat: {{ restaurant.latitude }}, lng: {{ restaurant.longitude }} },
+            mapTypeControl: false,
+            streetViewControl: false,
+            fullscreenControl: false
         });
         
-        const marker = L.marker([{{ restaurant.latitude }}, {{ restaurant.longitude }}], {
-            icon: restaurantIcon
-        }).addTo(map);
+        // Add restaurant marker
+        const marker = new google.maps.Marker({
+            position: { lat: {{ restaurant.latitude }}, lng: {{ restaurant.longitude }} },
+            map: map,
+            title: '{{ restaurant.name }}',
+            icon: {
+                path: google.maps.SymbolPath.CIRCLE,
+                scale: 15,
+                fillColor: "#04AA6D",
+                fillOpacity: 1,
+                strokeColor: "#ffffff",
+                strokeWeight: 3
+            }
+        });
         
-        // Create a more detailed popup
-        const popupContent = `
-            <div class="map-popup">
-                <h3>{{ restaurant.name }}</h3>
-                <p>{{ restaurant.get_full_address }}</p>
-                <div class="popup-meta">
-                    <span>{{ restaurant.get_cuisine_type_display }}</span>
-                    <span>{{ restaurant.price_range }}</span>
+        // Create info window
+        const infoWindow = new google.maps.InfoWindow({
+            content: `
+                <div class="map-popup">
+                    <h3>{{ restaurant.name }}</h3>
+                    <p>{{ restaurant.get_full_address }}</p>
+                    <div class="popup-meta">
+                        <span>{{ restaurant.get_cuisine_type_display }}</span>
+                        <span>{{ restaurant.price_range }}</span>
+                    </div>
+                    <div class="popup-actions">
+                        <a href="https://www.google.com/maps/dir/?api=1&destination={{ restaurant.latitude }},{{ restaurant.longitude }}" target="_blank" rel="noopener noreferrer">
+                            <i class="ri-route-line"></i> Directions
+                        </a>
+                    </div>
                 </div>
-                <div class="popup-actions">
-                    <a href="https://www.google.com/maps/dir/?api=1&destination={{ restaurant.latitude }},{{ restaurant.longitude }}" target="_blank" rel="noopener noreferrer">
-                        <i class="ri-route-line"></i> Directions
-                    </a>
-                </div>
-            </div>
-        `;
+            `
+        });
         
-        marker.bindPopup(popupContent).openPopup();
+        marker.addListener('click', () => {
+            infoWindow.open(map, marker);
+        });
+        
+        // Open info window by default
+        infoWindow.open(map, marker);
         
         // Add a circle around the restaurant to indicate the area
-        const circle = L.circle([{{ restaurant.latitude }}, {{ restaurant.longitude }}], {
-            color: 'rgba(var(--first-color-rgb), 0.2)',
-            fillColor: 'rgba(var(--first-color-rgb), 0.1)',
-            fillOpacity: 0.5,
+        const circle = new google.maps.Circle({
+            strokeColor: '#04AA6D',
+            strokeOpacity: 0.2,
+            strokeWeight: 2,
+            fillColor: '#04AA6D',
+            fillOpacity: 0.1,
+            map: map,
+            center: { lat: {{ restaurant.latitude }}, lng: {{ restaurant.longitude }} },
             radius: 300
-        }).addTo(map);
+        });
         
         // Add custom map controls
         const mapContainer = document.getElementById('map');
@@ -595,13 +597,12 @@
         
         // Center map button
         document.getElementById('centerMapBtn').addEventListener('click', function() {
-            map.setView([{{ restaurant.latitude }}, {{ restaurant.longitude }}], 15, {
-                animate: true,
-                duration: 1
-            });
+            map.setCenter({ lat: {{ restaurant.latitude }}, lng: {{ restaurant.longitude }} });
+            map.setZoom(15);
         });
-        
-        
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
         // Add animation to info cards
         const infoCards = document.querySelectorAll('.info-card, .map-card');
         infoCards.forEach((card, index) => {

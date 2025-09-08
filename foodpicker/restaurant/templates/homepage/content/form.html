@@ -346,12 +346,12 @@
 </div>
 
 <!-- External CSS -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
 <!-- External JS -->
-<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&libraries=places&callback=initMap"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
 <style>
@@ -903,7 +903,7 @@
 
         .progress-bar {
             padding: 1rem;
-            z-index: 0;]
+            z-index: 0;
         }
 
         .progress-step span {
@@ -972,19 +972,6 @@
     .map-control-btn i {
         font-size: 1rem;
         color: #0468aa;
-    }
-
-    .leaflet-container {
-        font-family: inherit;
-    }
-
-    .leaflet-popup-content {
-        margin: 0.5rem 0.75rem;
-        font-size: 0.9rem;
-    }
-
-    .leaflet-popup-content p {
-        margin: 0.25rem 0;
     }
 
     .location-popup {
@@ -1114,6 +1101,11 @@
 </style>
 
 <script>
+    // Global function for Google Maps callback
+    function initMap() {
+        // Will be initialized in the document ready function
+    }
+
     document.addEventListener("DOMContentLoaded", function () {
         const searchInput = document.getElementById("search_location");
         const suggestionsList = document.getElementById("suggestions");
@@ -1130,19 +1122,28 @@
         let debounceTimer;
         const cache = new Map();
 
-        // Map initialization
-        let map = L.map('location-map').setView([4.2105, 101.9758], 7);
+        // Map initialization using Google Maps
+        let map;
         let marker;
-        const defaultCenter = [4.2105, 101.9758];
+        const defaultCenter = { lat: 4.2105, lng: 101.9758 };
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
+        function initMap() {
+            map = new google.maps.Map(document.getElementById('location-map'), {
+                zoom: 7,
+                center: defaultCenter,
+                mapTypeControl: false,
+                streetViewControl: false,
+                fullscreenControl: false
+            });
 
-        // Map click handler
-        map.on('click', function(e) {
-            updateMarkerPosition(e.latlng);
-        });
+            // Map click handler
+            map.addListener('click', function(e) {
+                updateMarkerPosition({
+                    lat: e.latLng.lat(),
+                    lng: e.latLng.lng()
+                });
+            });
+        }
 
         // Current location button
         document.getElementById('current-location').addEventListener('click', function() {
@@ -1153,7 +1154,8 @@
                             lat: position.coords.latitude,
                             lng: position.coords.longitude
                         };
-                        map.setView(latlng, 16);
+                        map.setCenter(latlng);
+                        map.setZoom(16);
                         updateMarkerPosition(latlng);
                     },
                     function(error) {
@@ -1167,9 +1169,10 @@
 
         // Reset map button
         document.getElementById('reset-map').addEventListener('click', function() {
-            map.setView(defaultCenter, 7);
+            map.setCenter(defaultCenter);
+            map.setZoom(7);
             if (marker) {
-                map.removeLayer(marker);
+                marker.setMap(null);
                 marker = null;
             }
             clearLocationInputs();
@@ -1177,42 +1180,46 @@
 
         function updateMarkerPosition(latlng) {
             if (marker) {
-                map.removeLayer(marker);
+                marker.setMap(null);
             }
 
-            marker = L.marker(latlng, { draggable: true }).addTo(map);
+            marker = new google.maps.Marker({
+                position: latlng,
+                map: map,
+                draggable: true,
+                title: 'Selected Location'
+            });
             
-            // Create popup content
-            const popupContent = document.createElement('div');
-            popupContent.className = 'location-popup';
-            popupContent.innerHTML = `
-                <p>Selected Location</p>
-                <div class="coordinates">
-                    ${latlng.lat.toFixed(6)}, ${latlng.lng.toFixed(6)}
-                </div>
-                <button class="confirm-location">
-                    <i class="fas fa-check"></i> Confirm Location
-                </button>
-            `;
-
-            // Add click handler to confirm button
-            const popup = L.popup().setContent(popupContent);
-            marker.bindPopup(popup).openPopup();
-
-            // Handle marker drag
-            marker.on('dragend', function(e) {
-                updateMarkerPosition(e.target.getLatLng());
+            // Create info window content
+            const infoWindow = new google.maps.InfoWindow({
+                content: `
+                    <div class="location-popup">
+                        <p>Selected Location</p>
+                        <div class="coordinates">
+                            ${latlng.lat.toFixed(6)}, ${latlng.lng.toFixed(6)}
+                        </div>
+                        <button class="confirm-location" onclick="reverseGeocode({lat: ${latlng.lat}, lng: ${latlng.lng}})">
+                            <i class="fas fa-check"></i> Confirm Location
+                        </button>
+                    </div>
+                `
             });
 
-            // Add click handler after popup is added to DOM
-            setTimeout(() => {
-                const confirmBtn = document.querySelector('.confirm-location');
-                if (confirmBtn) {
-                    confirmBtn.addEventListener('click', function() {
-                        reverseGeocode(latlng);
-                    });
-                }
-            }, 100);
+            marker.addListener('click', () => {
+                infoWindow.open(map, marker);
+            });
+
+            // Handle marker drag
+            marker.addListener('dragend', function() {
+                const newPos = marker.getPosition();
+                updateMarkerPosition({
+                    lat: newPos.lat(),
+                    lng: newPos.lng()
+                });
+            });
+
+            // Open info window immediately
+            infoWindow.open(map, marker);
         }
 
         function reverseGeocode(latlng) {
@@ -1296,7 +1303,8 @@
                     };
                     
                     // Update map view and marker
-                    map.setView(latlng, 16);
+                    map.setCenter(latlng);
+                    map.setZoom(16);
                     updateMarkerPosition(latlng);
 
                     // Update form inputs
@@ -1483,7 +1491,7 @@
             searchByMap.classList.add('active');
             searchByText.classList.remove('active');
             setTimeout(() => {
-                map.invalidateSize();
+                google.maps.event.trigger(map, 'resize');
             }, 100);
             }
         });
@@ -1510,27 +1518,22 @@
                 return;
             }
 
-            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addressString)}&countrycodes=MY&limit=1`;
-
-            fetch(url)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.length > 0) {
-                        const location = data[0];
-                        const latlng = {
-                            lat: parseFloat(location.lat),
-                            lng: parseFloat(location.lon)
-                        };
-                        map.setView(latlng, 16);
-                        updateMarkerPosition(latlng);
-                    } else {
-                        alert('Location not found. Please try a different address.');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error geocoding address. Please try again.');
-                });
+            // Use Google Maps Geocoding API
+            const geocoder = new google.maps.Geocoder();
+            geocoder.geocode({ address: addressString }, function(results, status) {
+                if (status === 'OK') {
+                    const location = results[0].geometry.location;
+                    const latlng = {
+                        lat: location.lat(),
+                        lng: location.lng()
+                    };
+                    map.setCenter(latlng);
+                    map.setZoom(16);
+                    updateMarkerPosition(latlng);
+                } else {
+                    alert('Location not found. Please try a different address.');
+                }
+            });
         });
     });
 </script>

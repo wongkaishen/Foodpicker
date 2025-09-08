@@ -32,6 +32,8 @@ EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
 EMAIL_PORT = env.int("EMAIL_PORT", default=587)
 ADMIN_HOST_USER=env("ADMIN_HOST_USER")
 
+GOOGLE_MAPS_API_KEY=env("key")
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
@@ -102,22 +104,22 @@ WSGI_APPLICATION = "base.wsgi.app"
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.contrib.gis.db.backends.postgis",  # Use the PostGIS engine
-        "NAME": "postgres",
-        "USER": "postgres",
-        "PASSWORD": env("PASSWORD"),
-        "HOST": "localhost",
-        "PORT": "5432",
-    },
     # "default": {
-    #     "ENGINE": "django.db.backends.postgresql_psycopg2",  # Use the PostGIS engine
+    #     "ENGINE": "django.contrib.gis.db.backends.postgis",  # Use the PostGIS engine
     #     "NAME": "postgres",
-    #     "USER": env("USER"),
+    #     "USER": "postgres",
     #     "PASSWORD": env("PASSWORD"),
-    #     "HOST": env("HOST"),
-    #     "PORT": "6543",
-    # }
+    #     "HOST": "localhost",
+    #     "PORT": "5432",
+    # },
+    "default": {
+        "ENGINE": "django.db.backends.postgresql_psycopg2",  # Use the PostGIS engine
+        "NAME": "postgres",
+        "USER": env("USER"),
+        "PASSWORD": env("PASSWORD"),
+        "HOST": env("HOST"),
+        "PORT": "6543",
+    }
 }
 
 # DATABASES = {
