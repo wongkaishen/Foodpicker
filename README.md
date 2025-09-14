@@ -53,8 +53,8 @@ Ensure you have the following installed:
 ## Technologies Used
 - Django (Python)
 - Supabase PostgreSQL
-- JavaScript (AJAX, Leaflet.js for maps)
-- OpenStreetMap & Nominatim API
+- JavaScript (AJAX, Google Maps JavaScript API)
+- Google Maps API (Places API, Geocoding API)
 
 
 ## License

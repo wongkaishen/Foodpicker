@@ -1,0 +1,269 @@
+{% extends 'homepage/content/main.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="test-page-header">
+                <h1><i class="ri-google-line"></i> Google Places Restaurant Test</h1>
+                <p class="lead">Test the Google Places API integration for restaurant details</p>
+            </div>
+
+            <div class="test-instructions">
+                <div class="alert alert-info">
+                    <h5><i class="ri-information-line"></i> How to use:</h5>
+                    <ol>
+                        <li>Click on any of the sample restaurants below to view their Google Places details</li>
+                        <li>The system will fetch real-time data from Google Places API</li>
+                        <li>You'll see photos, reviews, hours, and other information from Google</li>
+                        <li>In the future, this will be replaced with database data</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="api-status">
+                <div class="status-card">
+                    <h5><i class="ri-settings-3-line"></i> API Configuration</h5>
+                    <div class="status-item">
+                        <span class="status-label">Google Maps API:</span>
+                        <span class="status-value success"><i class="ri-check-circle-line"></i> Configured</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Places API:</span>
+                        <span class="status-value success"><i class="ri-check-circle-line"></i> Enabled</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Categorization:</span>
+                        <span class="status-value success"><i class="ri-check-circle-line"></i> Enhanced System Active</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sample-restaurants">
+                <h3><i class="ri-restaurant-line"></i> Sample Restaurants</h3>
+                <div class="restaurants-grid">
+                    {% for place in sample_places %}
+                    <div class="restaurant-card">
+                        <div class="card-header">
+                            <h5>{{ place.name }}</h5>
+                            <p class="text-muted">{{ place.description }}</p>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Place ID:</strong> <code>{{ place.place_id }}</code></p>
+                            <a href="{% url 'google_restaurant_detail' place.place_id %}" 
+                               class="btn btn-primary btn-block">
+                                <i class="ri-eye-line"></i> View Google Details
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="how-to-find-places">
+                <div class="info-card">
+                    <h5><i class="ri-search-line"></i> How to find Place IDs for testing:</h5>
+                    <ol>
+                        <li>Go to <a href="https://developers.google.com/maps/documentation/places/web-service/place-id" target="_blank">Google Place ID Finder</a></li>
+                        <li>Search for a restaurant near you</li>
+                        <li>Copy the Place ID from the results</li>
+                        <li>Use this URL pattern: <code>/google-restaurant/PLACE_ID_HERE/</code></li>
+                    </ol>
+                    
+                    <div class="example-usage">
+                        <h6>Example URLs:</h6>
+                        <ul>
+                            {% for place in sample_places %}
+                            <li><code>{% url 'google_restaurant_detail' place.place_id %}</code></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="features-list">
+                <h5><i class="ri-star-line"></i> Features Included:</h5>
+                <div class="features-grid">
+                    <div class="feature-item">
+                        <i class="ri-image-line"></i>
+                        <span>Restaurant Photos</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="ri-star-fill"></i>
+                        <span>Reviews & Ratings</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="ri-time-line"></i>
+                        <span>Opening Hours</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="ri-phone-line"></i>
+                        <span>Contact Information</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="ri-map-pin-line"></i>
+                        <span>Location & Map</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="ri-restaurant-line"></i>
+                        <span>Cuisine Classification</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="migration-note">
+                <div class="alert alert-warning">
+                    <h5><i class="ri-database-line"></i> Future Migration Plan:</h5>
+                    <p>Currently fetching data from Google Places API. In the future, this will be replaced with local database queries for better performance and control.</p>
+                    <ul>
+                        <li>Current: Real-time Google Places API calls</li>
+                        <li>Future: Local database with cached Google data</li>
+                        <li>Benefits: Faster loading, custom data, offline capability</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .test-page-header {
+        text-align: center;
+        margin-bottom: 2rem;
+        padding: 2rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+    }
+
+    .test-page-header h1 {
+        margin-bottom: 0.5rem;
+    }
+
+    .test-instructions {
+        margin-bottom: 2rem;
+    }
+
+    .api-status {
+        margin-bottom: 2rem;
+    }
+
+    .status-card {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 8px;
+        border-left: 4px solid #28a745;
+    }
+
+    .status-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .status-label {
+        font-weight: 500;
+    }
+
+    .status-value.success {
+        color: #28a745;
+        font-weight: 500;
+    }
+
+    .restaurants-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1rem;
+    }
+
+    .restaurant-card {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .restaurant-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .restaurant-card .card-header {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .restaurant-card .card-header h5 {
+        margin: 0 0 0.5rem 0;
+        color: #333;
+    }
+
+    .restaurant-card .card-body {
+        padding: 1rem;
+    }
+
+    .btn-block {
+        width: 100%;
+        margin-top: 1rem;
+    }
+
+    .how-to-find-places {
+        margin: 2rem 0;
+    }
+
+    .info-card {
+        background: #e3f2fd;
+        padding: 1.5rem;
+        border-radius: 8px;
+        border-left: 4px solid #2196f3;
+    }
+
+    .example-usage {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #bbdefb;
+    }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .feature-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem;
+        background: #f8f9fa;
+        border-radius: 6px;
+        font-weight: 500;
+    }
+
+    .feature-item i {
+        color: #667eea;
+        font-size: 1.2rem;
+    }
+
+    .migration-note {
+        margin-top: 2rem;
+    }
+
+    .sample-restaurants {
+        margin: 2rem 0;
+    }
+
+    code {
+        background: #f8f9fa;
+        padding: 0.2rem 0.4rem;
+        border-radius: 3px;
+        font-size: 0.9rem;
+        color: #e83e8c;
+    }
+</style>
+{% endblock %}

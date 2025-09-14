@@ -2,7 +2,6 @@
 
 <style>
   .all-restaurants-map {
-    max-width: 1200px;
     margin: 2rem auto;
     padding: 1.5rem;
     background: #fff;
@@ -353,7 +352,7 @@
         <label for="priceFilter">Price:</label>
         <select id="priceFilter" class="form-select">
           <option value="">All Prices</option>
-          {% for code, name in price_range_choices %}
+          {% for code, name in price_choices %}
             <option value="{{ code }}">{{ name }}</option>
           {% endfor %}
         </select>
@@ -582,7 +581,7 @@
     };
   }
 
-  async function fetchRestaurants(radius, cuisine = "", establishment = "") {
+  async function fetchRestaurants(radius, cuisine = "", establishment = "", price = "") {
     if (!userLat || !userLon) {
       showNotification("User location not available.", "error");
       return;
@@ -601,13 +600,15 @@
         longitude: userLon,
         radius: radius,
         cuisine: cuisine,
-        establishment: establishment
+        establishment: establishment,
+        price: price
       });
 
       console.log('Fetching with params:', params.toString());
       console.log("=== FETCH RESTAURANTS DEBUG ===");
       console.log("Selected cuisine filter:", cuisine);
       console.log("Selected establishment filter:", establishment);
+      console.log("Selected price filter:", price);
       console.log("Selected radius:", radius);
       console.log("User latitude:", userLat);
       console.log("User longitude:", userLon);
@@ -829,8 +830,8 @@
             ` : ''}
           </div>
           <div class="popup-actions">
-            <a href="https://www.google.com/maps/place/?q=place_id:${restaurant.google_place_id}" target="_blank" rel="noopener noreferrer" class="details-link">
-              <i class="ri-external-link-line"></i> View on Google Maps
+            <a href="/google-restaurant/${restaurant.google_place_id}/" class="details-link">
+              <i class="ri-restaurant-line"></i> View Restaurant Details
             </a>
           </div>
         </div>
@@ -845,26 +846,25 @@
   }
 
   // Debounced version of fetchRestaurants
-  const debouncedFetchRestaurants = debounce((radius, cuisine, establishment) => {
-    fetchRestaurants(radius, cuisine, establishment);
+  const debouncedFetchRestaurants = debounce((radius, cuisine, establishment, price) => {
+    fetchRestaurants(radius, cuisine, establishment, price);
   }, FETCH_DELAY);
 
   // Event listeners
   radiusFilter.addEventListener("change", () =>
-    debouncedFetchRestaurants(radiusFilter.value, cuisineFilter.value, establishmentFilter.value)
+    debouncedFetchRestaurants(radiusFilter.value, cuisineFilter.value, establishmentFilter.value, priceFilter.value)
   );
 
   cuisineFilter.addEventListener("change", () =>
-    debouncedFetchRestaurants(radiusFilter.value, cuisineFilter.value, establishmentFilter.value)
+    debouncedFetchRestaurants(radiusFilter.value, cuisineFilter.value, establishmentFilter.value, priceFilter.value)
   );
 
   establishmentFilter.addEventListener("change", () =>
-    debouncedFetchRestaurants(radiusFilter.value, cuisineFilter.value, establishmentFilter.value)
+    debouncedFetchRestaurants(radiusFilter.value, cuisineFilter.value, establishmentFilter.value, priceFilter.value)
   );
 
-  // Note: Price filter still available in UI but Google Places API handles pricing differently
   priceFilter.addEventListener("change", () =>
-    debouncedFetchRestaurants(radiusFilter.value, cuisineFilter.value, establishmentFilter.value)
+    debouncedFetchRestaurants(radiusFilter.value, cuisineFilter.value, establishmentFilter.value, priceFilter.value)
   );
 
   refreshLocationBtn.addEventListener("click", getUserLocation);
@@ -891,7 +891,8 @@
         longitude: userLon,
         radius: 15,
         cuisine: "",
-        establishment: ""
+        establishment: "",
+        price: ""
       });
 
       // Use Google Places API endpoint
@@ -1012,7 +1013,8 @@
     fetchRestaurants(
       radiusFilter.value,
       cuisineFilter.value,
-      establishmentFilter.value
+      establishmentFilter.value,
+      priceFilter.value
     );
   }
 

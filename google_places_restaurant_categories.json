@@ -1,0 +1,736 @@
+{
+  "discovered_types": [
+    "bakery",
+    "restaurant",
+    "night_club",
+    "real_estate_agency",
+    "establishment",
+    "food",
+    "sublocality",
+    "sublocality_level_1",
+    "cafe",
+    "travel_agency",
+    "locality",
+    "spa",
+    "gym",
+    "health",
+    "political",
+    "point_of_interest",
+    "meal_delivery",
+    "bar",
+    "grocery_or_supermarket",
+    "car_repair",
+    "meal_takeaway",
+    "store",
+    "convenience_store",
+    "lodging",
+    "gas_station",
+    "pharmacy",
+    "liquor_store",
+    "amusement_park"
+  ],
+  "categorized_types": {
+    "primary_types": [
+      "restaurant",
+      "food",
+      "establishment",
+      "meal_takeaway",
+      "meal_delivery"
+    ],
+    "cuisine_restaurants": [
+      "american_restaurant",
+      "chinese_restaurant",
+      "french_restaurant",
+      "greek_restaurant",
+      "indian_restaurant",
+      "italian_restaurant",
+      "japanese_restaurant",
+      "korean_restaurant",
+      "mediterranean_restaurant",
+      "mexican_restaurant",
+      "middle_eastern_restaurant",
+      "seafood_restaurant",
+      "thai_restaurant",
+      "vietnamese_restaurant"
+    ],
+    "restaurant_styles": [
+      "fine_dining_restaurant",
+      "fast_food_restaurant",
+      "family_restaurant",
+      "buffet_restaurant",
+      "brunch_restaurant",
+      "breakfast_restaurant",
+      "hamburger_restaurant",
+      "pizza_restaurant",
+      "sandwich_shop",
+      "steak_house",
+      "sushi_restaurant",
+      "ramen_restaurant",
+      "noodle_house"
+    ],
+    "cafes_coffee": [
+      "cafe",
+      "coffee_shop",
+      "tea_house",
+      "espresso_bar"
+    ],
+    "bars_nightlife": [
+      "bar",
+      "night_club",
+      "pub",
+      "wine_bar",
+      "cocktail_lounge",
+      "sports_bar"
+    ],
+    "bakeries_sweets": [
+      "bakery",
+      "pastry_shop",
+      "ice_cream_shop",
+      "frozen_yogurt_shop",
+      "donut_shop",
+      "candy_store"
+    ],
+    "quick_service": [
+      "food_truck",
+      "juice_bar",
+      "smoothie_bar",
+      "snack_bar"
+    ],
+    "specialty_food": [
+      "deli",
+      "delicatessen"
+    ]
+  },
+  "sample_places": [
+    {
+      "name": "Silka Maytower",
+      "types": [
+        "lodging",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": null,
+      "rating": 3.8,
+      "business_status": "OPERATIONAL"
+    },
+    {
+      "name": "Anggun Boutique Hotel and Spa",
+      "types": [
+        "cafe",
+        "real_estate_agency",
+        "lodging",
+        "spa",
+        "travel_agency",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": null,
+      "rating": 4.2,
+      "business_status": "OPERATIONAL"
+    },
+    {
+      "name": "AnCasa Hotel Kuala Lumpur, Chinatown",
+      "types": [
+        "gym",
+        "lodging",
+        "spa",
+        "health",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": null,
+      "rating": 4.1,
+      "business_status": "OPERATIONAL"
+    },
+    {
+      "name": "Hotel Olympic Malaysia",
+      "types": [
+        "cafe",
+        "lodging",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": null,
+      "rating": 4.5,
+      "business_status": "OPERATIONAL"
+    },
+    {
+      "name": "Subway Wisma UOA Damansara",
+      "types": [
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": 2,
+      "rating": 3.8,
+      "business_status": "OPERATIONAL"
+    },
+    {
+      "name": "Lemon Garden",
+      "types": [
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": 3,
+      "rating": 4.4,
+      "business_status": "OPERATIONAL"
+    },
+    {
+      "name": "Sze Ngan Chye",
+      "types": [
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": null,
+      "rating": 4.2,
+      "business_status": "OPERATIONAL"
+    },
+    {
+      "name": "Hotel Maya Kuala Lumpur City Centre",
+      "types": [
+        "cafe",
+        "gym",
+        "lodging",
+        "health",
+        "store",
+        "restaurant",
+        "food",
+        "bar",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": null,
+      "rating": 4.1,
+      "business_status": "OPERATIONAL"
+    },
+    {
+      "name": "Sushi Zanmai The Gardens Mall",
+      "types": [
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": 2,
+      "rating": 3.8,
+      "business_status": "OPERATIONAL"
+    },
+    {
+      "name": "Sani Hotel Kuala Lumpur",
+      "types": [
+        "lodging",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": null,
+      "rating": 3.9,
+      "business_status": "OPERATIONAL"
+    },
+    {
+      "name": "The Lobby Lounge",
+      "types": [
+        "restaurant",
+        "food",
+        "night_club",
+        "bar",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": null,
+      "rating": 4.2,
+      "business_status": "OPERATIONAL"
+    },
+    {
+      "name": "Subway @ Jalan Pinang KL",
+      "types": [
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": 2,
+      "rating": 3.9,
+      "business_status": "OPERATIONAL"
+    },
+    {
+      "name": "The Social @ Bangsar",
+      "types": [
+        "bar",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": 2,
+      "rating": 4.2,
+      "business_status": "OPERATIONAL"
+    },
+    {
+      "name": "GUARDIAN Sungei Wang Plaza",
+      "types": [
+        "pharmacy",
+        "health",
+        "store",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": null,
+      "rating": 3.6,
+      "business_status": "OPERATIONAL"
+    },
+    {
+      "name": "Splash",
+      "types": [
+        "restaurant",
+        "food",
+        "bar",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": null,
+      "rating": 4.8,
+      "business_status": "OPERATIONAL"
+    },
+    {
+      "name": "6 Capsquare Condominium",
+      "types": [
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": null,
+      "rating": 4.2,
+      "business_status": "OPERATIONAL"
+    },
+    {
+      "name": "\u0102n Viet @The Gardens Mall",
+      "types": [
+        "cafe",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": 2,
+      "rating": 4.2,
+      "business_status": "OPERATIONAL"
+    },
+    {
+      "name": "Nasi Lemak CT Garden",
+      "types": [
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": 1,
+      "rating": 3.8,
+      "business_status": "OPERATIONAL"
+    },
+    {
+      "name": "Jogoya Japanese Buffet Restaurant",
+      "types": [
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": 3,
+      "rating": 3.8,
+      "business_status": "OPERATIONAL"
+    },
+    {
+      "name": "Opus Bistro",
+      "types": [
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": 3,
+      "rating": 4.3,
+      "business_status": "OPERATIONAL"
+    },
+    {
+      "name": "Kuala Lumpur",
+      "types": [
+        "locality",
+        "political"
+      ],
+      "price_level": null,
+      "rating": null,
+      "business_status": null
+    },
+    {
+      "name": "Le M\u00e9ridien Kuala Lumpur",
+      "types": [
+        "lodging",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": null,
+      "rating": 4.5,
+      "business_status": "OPERATIONAL"
+    },
+    {
+      "name": "Aloft Kuala Lumpur Sentral",
+      "types": [
+        "lodging",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": null,
+      "rating": 4.4,
+      "business_status": "OPERATIONAL"
+    },
+    {
+      "name": "St. Giles Boulevard Hotel",
+      "types": [
+        "lodging",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": null,
+      "rating": 4.3,
+      "business_status": "OPERATIONAL"
+    },
+    {
+      "name": "Hotel ChinaTown 2",
+      "types": [
+        "lodging",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": null,
+      "rating": 3.6,
+      "business_status": "OPERATIONAL"
+    },
+    {
+      "name": "Swing and Pillows @ Hotel China Town Inn",
+      "types": [
+        "lodging",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": null,
+      "rating": 4.1,
+      "business_status": "OPERATIONAL"
+    },
+    {
+      "name": "Hilton Kuala Lumpur",
+      "types": [
+        "spa",
+        "lodging",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": null,
+      "rating": 4.5,
+      "business_status": "OPERATIONAL"
+    },
+    {
+      "name": "Cojoy Hotel @ Chinatown",
+      "types": [
+        "lodging",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": null,
+      "rating": 4.1,
+      "business_status": "OPERATIONAL"
+    },
+    {
+      "name": "Arenaa Mountbatten Hotel",
+      "types": [
+        "lodging",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": null,
+      "rating": 3.7,
+      "business_status": "OPERATIONAL"
+    },
+    {
+      "name": "OYO 416 Grid 9 Hotel",
+      "types": [
+        "lodging",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": null,
+      "rating": 3.9,
+      "business_status": "OPERATIONAL"
+    },
+    {
+      "name": "Cititel Mid Valley",
+      "types": [
+        "lodging",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": null,
+      "rating": 4.1,
+      "business_status": "OPERATIONAL"
+    },
+    {
+      "name": "Hotel A-One",
+      "types": [
+        "lodging",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": null,
+      "rating": 4,
+      "business_status": "OPERATIONAL"
+    },
+    {
+      "name": "The Gardens - A St Giles Signature Hotel & Residences",
+      "types": [
+        "lodging",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": null,
+      "rating": 4.3,
+      "business_status": "OPERATIONAL"
+    },
+    {
+      "name": "Alamanda Hotel",
+      "types": [
+        "lodging",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": null,
+      "rating": 3,
+      "business_status": "OPERATIONAL"
+    },
+    {
+      "name": "Lotus Hotel Masjid India",
+      "types": [
+        "lodging",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": null,
+      "rating": 4,
+      "business_status": "OPERATIONAL"
+    },
+    {
+      "name": "The Bodhi Lodge",
+      "types": [
+        "lodging",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": null,
+      "rating": 3.9,
+      "business_status": "OPERATIONAL"
+    },
+    {
+      "name": "The Nomad Serviced Residences Bangsar",
+      "types": [
+        "lodging",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": null,
+      "rating": 4.1,
+      "business_status": "OPERATIONAL"
+    },
+    {
+      "name": "Valenza Hotel & Cafe",
+      "types": [
+        "lodging",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": null,
+      "rating": 3.9,
+      "business_status": "OPERATIONAL"
+    },
+    {
+      "name": "Hotel 1915 Kuala Lumpur",
+      "types": [
+        "lodging",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": null,
+      "rating": 3.5,
+      "business_status": "OPERATIONAL"
+    },
+    {
+      "name": "Kuala Lumpur City Centre",
+      "types": [
+        "sublocality_level_1",
+        "sublocality",
+        "political"
+      ],
+      "price_level": null,
+      "rating": null,
+      "business_status": null
+    },
+    {
+      "name": "Glenmarie Hotel & Golf Resort",
+      "types": [
+        "cafe",
+        "lodging",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": null,
+      "rating": 4.2,
+      "business_status": "OPERATIONAL"
+    },
+    {
+      "name": "De Palma Hotel Shah Alam",
+      "types": [
+        "cafe",
+        "lodging",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": null,
+      "rating": 4.1,
+      "business_status": "OPERATIONAL"
+    },
+    {
+      "name": "Anggun Boutique Hotel and Spa",
+      "types": [
+        "spa",
+        "real_estate_agency",
+        "cafe",
+        "travel_agency",
+        "lodging",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": null,
+      "rating": 4.2,
+      "business_status": "OPERATIONAL"
+    },
+    {
+      "name": "Premi\u00e8re Hotel",
+      "types": [
+        "cafe",
+        "lodging",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": null,
+      "rating": 4.1,
+      "business_status": "OPERATIONAL"
+    },
+    {
+      "name": "Hotel Maya Kuala Lumpur City Centre",
+      "types": [
+        "cafe",
+        "bar",
+        "gym",
+        "lodging",
+        "health",
+        "store",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": null,
+      "rating": 4.1,
+      "business_status": "OPERATIONAL"
+    },
+    {
+      "name": "Hotel Olympic Malaysia",
+      "types": [
+        "cafe",
+        "lodging",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": null,
+      "rating": 4.5,
+      "business_status": "OPERATIONAL"
+    },
+    {
+      "name": "Faculty of Engineering, Universiti Putra Malaysia",
+      "types": [
+        "cafe",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": null,
+      "rating": 4.5,
+      "business_status": "OPERATIONAL"
+    },
+    {
+      "name": "The Royal Selangor Golf Club",
+      "types": [
+        "cafe",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": null,
+      "rating": 4.4,
+      "business_status": "OPERATIONAL"
+    },
+    {
+      "name": "Levain Boulangerie & Patisserie",
+      "types": [
+        "bakery",
+        "cafe",
+        "store",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": 2,
+      "rating": 4.2,
+      "business_status": "OPERATIONAL"
+    },
+    {
+      "name": "Starbucks",
+      "types": [
+        "cafe",
+        "store",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "price_level": 2,
+      "rating": 4.1,
+      "business_status": "OPERATIONAL"
+    }
+  ]
+}

@@ -32,7 +32,7 @@ EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
 EMAIL_PORT = env.int("EMAIL_PORT", default=587)
 ADMIN_HOST_USER=env("ADMIN_HOST_USER")
 
-GOOGLE_MAPS_API_KEY=env("key")
+GOOGLE_MAPS_API_KEY = env("key", default="")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
@@ -104,21 +104,16 @@ WSGI_APPLICATION = "base.wsgi.app"
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 DATABASES = {
-    # "default": {
-    #     "ENGINE": "django.contrib.gis.db.backends.postgis",  # Use the PostGIS engine
-    #     "NAME": "postgres",
-    #     "USER": "postgres",
-    #     "PASSWORD": env("PASSWORD"),
-    #     "HOST": "localhost",
-    #     "PORT": "5432",
-    # },
     "default": {
-        "ENGINE": "django.db.backends.postgresql_psycopg2",  # Use the PostGIS engine
-        "NAME": "postgres",
-        "USER": env("USER"),
-        "PASSWORD": env("PASSWORD"),
-        "HOST": env("HOST"),
-        "PORT": "6543",
+        "ENGINE": "django.db.backends.postgresql_psycopg2",
+        "NAME": env("DB_NAME", default="postgres"),
+        "USER": env("DB_USER", default=env("USER", default="postgres")),
+        "PASSWORD": env("DB_PASSWORD", default=env("PASSWORD", default="")),
+        "HOST": env("DB_HOST", default=env("HOST", default="localhost")),
+        "PORT": env("DB_PORT", default="6543"),
+        "OPTIONS": {
+            "sslmode": env("DB_SSLMODE", default="prefer"),  # Use prefer for local, require for Supabase
+        },
     }
 }
 

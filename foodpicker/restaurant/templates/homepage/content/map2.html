@@ -384,58 +384,105 @@
   const refreshLocationBtn = document.getElementById("refreshLocationBtn");
   const findNearestBtn = document.getElementById("findNearestBtn");
 
-  // Custom icons
-  const userIcon = L.divIcon({
-    className: "custom-div-icon",
-    html: `<div style="background-color:#2563eb; width:20px; height:20px; border-radius:50%; border:3px solid white;"></div>`,
-    iconSize: [20, 20],
-    iconAnchor: [10, 10],
-  });
+  function initMap() {
+    // Initialize Google Map
+    map = new google.maps.Map(document.getElementById("map"), {
+      zoom: 14,
+      center: { lat: 2.9252, lng: 101.6414 }, // Default to Malaysia
+      mapTypeControl: false,
+      streetViewControl: false,
+      fullscreenControl: false,
+      styles: [
+        {
+          featureType: "poi",
+          elementType: "labels",
+          stylers: [{ visibility: "off" }]
+        }
+      ]
+    });
 
-  const restaurantIcon = L.divIcon({
-    className: "custom-div-icon",
-    html: `<div style="background-color:#04AA6D; width:20px; height:20px; border-radius:50%; border:3px solid white;"></div>`,
-    iconSize: [20, 20],
-    iconAnchor: [10, 10],
-  });
+    // Initialize user location
+    getUserLocation();
+  }
 
   function initializeMap(lat, lon) {
-    map = L.map("map", {
-      zoomControl: false,
-    }).setView([lat, lon], 14);
+    if (!map) {
+      map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 14,
+        center: { lat: lat, lng: lon },
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: false,
+        styles: [
+          {
+            featureType: "poi",
+            elementType: "labels",
+            stylers: [{ visibility: "off" }]
+          }
+        ]
+      });
+    } else {
+      map.setCenter({ lat: lat, lng: lon });
+      map.setZoom(14);
+    }
 
-    // Add custom tile layer with better styling
-    L.tileLayer(
-      "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-      {
-        attribution:
-          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        subdomains: "abcd",
-        maxZoom: 19,
+    if (userMarker) {
+      userMarker.setMap(null);
+    }
+    
+    userMarker = new google.maps.Marker({
+      position: { lat: lat, lng: lon },
+      map: map,
+      title: "Your Location",
+      icon: {
+        path: google.maps.SymbolPath.CIRCLE,
+        scale: 10,
+        fillColor: "#2563eb",
+        fillOpacity: 1,
+        strokeColor: "#ffffff",
+        strokeWeight: 3
       }
-    ).addTo(map);
+    });
 
-    // Add zoom control to top-right
-    L.control
-      .zoom({
-        position: "topright",
-      })
-      .addTo(map);
-
-    userMarker = L.marker([lat, lon], { icon: userIcon })
-      .addTo(map)
-      .bindPopup("<b>Your Location</b>")
-      .openPopup();
+    const userInfoWindow = new google.maps.InfoWindow({
+      content: "<b>Your Location</b>"
+    });
+    
+    userMarker.addListener("click", () => {
+      userInfoWindow.open(map, userMarker);
+    });
   }
 
   function updateMap(lat, lon) {
     if (!map) initializeMap(lat, lon);
-    map.setView([lat, lon], 14);
-    if (userMarker) map.removeLayer(userMarker);
-    userMarker = L.marker([lat, lon], { icon: userIcon })
-      .addTo(map)
-      .bindPopup("<b>Your Location</b>")
-      .openPopup();
+    map.setCenter({ lat: lat, lng: lon });
+    map.setZoom(14);
+    
+    if (userMarker) {
+      userMarker.setMap(null);
+    }
+    
+    userMarker = new google.maps.Marker({
+      position: { lat: lat, lng: lon },
+      map: map,
+      title: "Your Location",
+      icon: {
+        path: google.maps.SymbolPath.CIRCLE,
+        scale: 10,
+        fillColor: "#2563eb",
+        fillOpacity: 1,
+        strokeColor: "#ffffff",
+        strokeWeight: 3
+      }
+    });
+
+    const userInfoWindow = new google.maps.InfoWindow({
+      content: "<b>Your Location</b>"
+    });
+    
+    userMarker.addListener("click", () => {
+      userInfoWindow.open(map, userMarker);
+    });
   }
 
   // Debounce function
@@ -500,17 +547,17 @@
       }
 
       // Create markers batch
-      const bounds = L.latLngBounds();
+      const bounds = new google.maps.LatLngBounds();
       data.restaurants.forEach((restaurant) => {
         const marker = createRestaurantMarker(restaurant);
         restaurantMarkers.push(marker);
-        bounds.extend([restaurant.latitude, restaurant.longitude]);
+        bounds.extend(new google.maps.LatLng(restaurant.latitude, restaurant.longitude));
       });
 
       // Adjust map bounds if we have restaurants
       if (data.restaurants.length > 0) {
-        bounds.extend([userLat, userLon]);
-        map.fitBounds(bounds, { padding: [50, 50] });
+        bounds.extend(new google.maps.LatLng(userLat, userLon));
+        map.fitBounds(bounds);
       }
 
     } catch (error) {
@@ -522,35 +569,52 @@
   }
 
   function clearMarkers() {
-    restaurantMarkers.forEach(marker => map.removeLayer(marker));
+    restaurantMarkers.forEach(marker => marker.setMap(null));
     restaurantMarkers = [];
   }
 
   function createRestaurantMarker(restaurant) {
-    const marker = L.marker([restaurant.latitude, restaurant.longitude], {
-      icon: restaurantIcon,
-    }).addTo(map);
+    const marker = new google.maps.Marker({
+      position: { lat: restaurant.latitude, lng: restaurant.longitude },
+      map: map,
+      title: restaurant.name,
+      icon: {
+        path: google.maps.SymbolPath.CIRCLE,
+        scale: 10,
+        fillColor: "#04AA6D",
+        fillOpacity: 1,
+        strokeColor: "#ffffff",
+        strokeWeight: 3
+      }
+    });
     
-    marker.bindPopup(`
-      <div class="popup-content">
-        <div class="popup-header">${restaurant.name}</div>
-        <div class="popup-info">
-          <div class="popup-info-item">
-            <i class="ri-map-pin-line"></i>
-            <span>Distance: ${restaurant.distance_km.toFixed(2)} km</span>
+    const infoWindow = new google.maps.InfoWindow({
+      content: `
+        <div class="popup-content">
+          <div class="popup-header">${restaurant.name}</div>
+          <div class="popup-info">
+            <div class="popup-info-item">
+              <i class="ri-map-pin-line"></i>
+              <span>Distance: ${restaurant.distance_km.toFixed(2)} km</span>
+            </div>
+            <div class="popup-info-item">
+              <i class="ri-restaurant-line"></i>
+              <span>Cuisine: ${restaurant.cuisine_type || "Various"}</span>
+            </div>
+            <div class="popup-info-item">
+              <i class="ri-money-dollar-circle-line"></i>
+              <span>Price: ${restaurant.price_range || "Various"}</span>
+            </div>
           </div>
-          <div class="popup-info-item">
-            <i class="ri-restaurant-line"></i>
-            <span>Cuisine: ${restaurant.cuisine_type || "Various"}</span>
-          </div>
-          <div class="popup-info-item">
-            <i class="ri-money-dollar-circle-line"></i>
-            <span>Price: ${restaurant.price_range || "Various"}</span>
-          </div>
+          <a href="/restaurant/${restaurant.id}/" class="details-link">View Details</a>
         </div>
-        <a href="/restaurant/${restaurant.id}/" class="details-link">View Details</a>
-      </div>
-    `);
+      `
+    });
+    
+    marker.addListener("click", () => {
+      infoWindow.open(map, marker);
+    });
+    
     return marker;
   }
 
@@ -578,6 +642,9 @@
   // Initialize
   getUserLocation();
 
+  // Make initMap available globally for Google Maps callback
+  window.initMap = initMap;
+
   async function fetchNearestRestaurant() {
     if (!userLat || !userLon) return;
 
@@ -603,17 +670,18 @@
       );
 
       // Center map on the nearest restaurant
-      map.setView([data.latitude, data.longitude], 15);
+      map.setCenter({ lat: data.latitude, lng: data.longitude });
+      map.setZoom(15);
 
       // Highlight the restaurant
       const marker = restaurantMarkers.find(
         (m) =>
-          m.getLatLng().lat === data.latitude &&
-          m.getLatLng().lng === data.longitude
+          m.getPosition().lat() === data.latitude &&
+          m.getPosition().lng() === data.longitude
       );
 
       if (marker) {
-        marker.openPopup();
+        google.maps.event.trigger(marker, 'click');
       }
     } catch (error) {
       console.error("Error fetching nearest restaurant:", error);

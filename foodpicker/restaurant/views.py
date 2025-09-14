@@ -12,14 +12,16 @@ from django.template.loader import render_to_string
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from .tokens import generate_token
-from .models import Restaurant, ContactMessage, ApprovedRestaurant
+from .models import Restaurant, ContactMessage, ApprovedRestaurant, GooglePlacesRestaurant
+from django.utils import timezone
+from datetime import timedelta
 from .forms import RestaurantForm
-from geopy.geocoders import Nominatim
 from functools import wraps
 from django.http import JsonResponse, HttpResponse
-from geopy.distance import geodesic
 from django.db.models import Q
-from math import cos, radians
+from math import cos, radians, sqrt, atan2, sin
+# Enhanced categorization imports are now imported on-demand in functions
+# from google_places_categories import categorize_google_place, get_comprehensive_search_strategies
 
 
 # Create your views here.
@@ -236,10 +238,138 @@ def get_res_list(request):
 
 @signup_required
 def get_res_detail(request, id):
+    """Get restaurant details from local database (existing functionality)"""
     restaurant = get_object_or_404(ApprovedRestaurant, id=id)
     return render(
         request, "homepage/content/restaurant_detail.html", {"restaurant": restaurant}
     )
+
+def get_google_restaurant_detail(request, place_id):
+    """Get restaurant details from Supabase cache or Google Places API"""
+    try:
+        # Get restaurant data (from cache or fresh from Google)
+        restaurant, message = get_or_fetch_google_restaurant(place_id)
+        
+        if not restaurant:
+            return render(request, 'homepage/content/restaurant_detail.html', {
+                'error': message,
+                'title': 'Restaurant Not Found'
+            })
+        
+        # Get Google Maps API key for photo URLs
+        api_key = settings.GOOGLE_MAPS_API_KEY
+        
+        # Generate photo URLs
+        photos = []
+        if restaurant.photo_references and api_key:
+            photo_urls = restaurant.get_photo_urls(api_key, max_width=800)
+            for i, url in enumerate(photo_urls):
+                photos.append({
+                    'url': url,
+                    'width': 800,
+                    'height': 600
+                })
+        
+        # Format reviews
+        reviews = []
+        for review_data in restaurant.reviews_data:
+            reviews.append({
+                'author_name': review_data.get('author_name', 'Anonymous'),
+                'rating': review_data.get('rating', 0),
+                'text': review_data.get('text', ''),
+                'time': review_data.get('time', 0),
+                'profile_photo_url': review_data.get('profile_photo_url', '')
+            })
+        
+        # Format opening hours
+        opening_hours = {
+            'open_now': restaurant.is_open_now,
+            'weekday_text': restaurant.opening_hours_text.split('\n') if restaurant.opening_hours_text else [],
+            'is_24_hours': restaurant.is_open_24_hours
+        }
+        
+        # Create template-compatible object
+        restaurant_data = {
+            'google_place_id': restaurant.google_place_id,
+            'name': restaurant.name,
+            'formatted_address': restaurant.formatted_address,
+            'phone': restaurant.phone,
+            'website': restaurant.website,
+            'latitude': restaurant.latitude,
+            'longitude': restaurant.longitude,
+            'rating': restaurant.rating,
+            'user_ratings_total': restaurant.user_ratings_total,
+            'price_level': restaurant.price_level,
+            'cuisine_type': restaurant.cuisine_type,
+            'establishment_type': restaurant.establishment_type,
+            'types': restaurant.google_types,
+            'business_status': restaurant.business_status,
+            'photos': photos,
+            'reviews': reviews,
+            'opening_hours': opening_hours,
+            'google_url': restaurant.google_url,
+            
+            # Template compatibility methods/properties
+            'get_full_address': lambda: restaurant.formatted_address,
+            'get_cuisine_type_display': restaurant.get_cuisine_type_display_custom(),
+            'average_rating': restaurant.rating,
+            'price_range': restaurant.price_range,
+            'is_open_24_hours': restaurant.is_open_24_hours,
+            'delivery_available': restaurant.delivery_available,
+            'takeout_available': restaurant.takeout_available,
+            'email': '',  # Google Places API doesn't provide email
+            'description': f"A {restaurant.get_cuisine_type_display_custom().lower()} {restaurant.establishment_type.lower()} with {restaurant.user_ratings_total} reviews and a {restaurant.rating} star rating.",
+            'opentime': None,
+            'closetime': None,
+            'image': {'url': photos[0]['url']} if photos else None,
+        }
+        
+        context = {
+            'restaurant': type('obj', (object,), restaurant_data),
+            'title': f"{restaurant.name} - Restaurant Details",
+            'is_google_data': True,
+            'photos': photos,
+            'reviews': reviews,
+            'opening_hours': opening_hours,
+            'data_source': message,  # Show where data came from
+            'last_updated': restaurant.last_updated_from_google.strftime('%Y-%m-%d %H:%M:%S') if restaurant.last_updated_from_google else 'Unknown'
+        }
+        
+        return render(request, 'homepage/content/restaurant_detail.html', context)
+        
+    except Exception as e:
+        return render(request, 'homepage/content/restaurant_detail.html', {
+            'error': f"Unexpected error: {str(e)}",
+            'title': 'Error'
+        })
+
+def google_restaurant_test(request):
+    """Test page to demonstrate Google restaurant detail functionality"""
+    # Some sample Google Place IDs for testing (you can replace these with real ones)
+    sample_places = [
+        {
+            'name': 'McDonald\'s KLCC',
+            'place_id': 'ChIJN1t_tDeuEmsRUsoyG83frY4',  # Sample place ID (replace with real ones)
+            'description': 'Fast food restaurant'
+        },
+        {
+            'name': 'Starbucks Coffee',
+            'place_id': 'ChIJrTLr-GyuEmsRBfy61i59si0',  # Sample place ID (replace with real ones)
+            'description': 'Coffee shop'
+        },
+        {
+            'name': 'KFC Restaurant',
+            'place_id': 'ChIJ2_xOe_KuEmsRNBjVQs3X2Ps',  # Sample place ID (replace with real ones)
+            'description': 'Fried chicken restaurant'
+        }
+    ]
+    
+    context = {
+        'title': 'Google Restaurant Test',
+        'sample_places': sample_places
+    }
+    
+    return render(request, 'homepage/content/google_restaurant_test.html', context)
 
 
 
@@ -299,12 +429,52 @@ def featured_restaurants_api(request):
         return JsonResponse({'error': str(e)}, status=500)
 
 def geocode_address(address):
-    """Geocode an address using OpenStreetMap (Nominatim)."""
-    geolocator = Nominatim(user_agent="restaurant_locator")
-    location = geolocator.geocode(address)
-    if location:
-        return location.latitude, location.longitude
-    return None, None
+    """Geocode an address using Google Maps Geocoding API."""
+    api_key = settings.GOOGLE_MAPS_API_KEY
+    if not api_key:
+        return None, None
+    
+    url = "https://maps.googleapis.com/maps/api/geocode/json"
+    params = {
+        'address': address,
+        'key': api_key
+    }
+    
+    try:
+        response = requests.get(url, params=params)
+        response.raise_for_status()
+        data = response.json()
+        
+        if data['status'] == 'OK' and data['results']:
+            location = data['results'][0]['geometry']['location']
+            return location['lat'], location['lng']
+        else:
+            print(f"Geocoding failed: {data.get('status', 'Unknown error')}")
+            return None, None
+    except requests.RequestException as e:
+        print(f"Error geocoding address: {e}")
+        return None, None
+
+def calculate_distance(lat1, lon1, lat2, lon2):
+    """
+    Calculate the distance between two points on Earth using the Haversine formula.
+    Returns distance in kilometers.
+    """
+    # Convert latitude and longitude from degrees to radians
+    lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
+    
+    # Haversine formula
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+    c = 2 * atan2(sqrt(a), sqrt(1-a))
+    
+    # Radius of Earth in kilometers
+    earth_radius = 6371.0
+    
+    # Calculate the distance
+    distance = earth_radius * c
+    return distance
 
 def restaurants_within_radius(request):
     """Return restaurants within the selected radius from the user's location."""
@@ -345,7 +515,7 @@ def restaurants_within_radius(request):
     # Calculate exact distances and filter
     filtered_restaurants = []
     for r in restaurants:
-        distance = geodesic(user_location, (r.latitude, r.longitude)).km
+        distance = calculate_distance(user_lat, user_lon, r.latitude, r.longitude)
         if distance <= radius:
             filtered_restaurants.append({
                 "id": r.id,
@@ -422,14 +592,14 @@ def nearest_restaurant(request):
 
     nearest = min(
         restaurants,
-        key=lambda r: geodesic(user_location, (r.latitude, r.longitude)).km if r.latitude and r.longitude else float('inf')
+        key=lambda r: calculate_distance(user_lat, user_lon, r.latitude, r.longitude) if r.latitude and r.longitude else float('inf')
     )
 
     return JsonResponse({
         "name": nearest.name,
         "latitude": nearest.latitude,
         "longitude": nearest.longitude,
-        "distance_km": nearest.get_distance(user_location),
+        "distance_km": calculate_distance(user_lat, user_lon, nearest.latitude, nearest.longitude),
     })
 
 def contact(request):
@@ -523,6 +693,10 @@ def about(request):
 def search(request):
     context = {"title": "Search"}
     return render(request, "homepage/content/search.html", context)
+
+# The following functions have been replaced by the enhanced categorization system
+# in google_places_categories.py. They are kept here for backward compatibility
+# but are no longer used in the main google_places_restaurants function.
 
 def categorize_establishment_type(place_types):
     """
@@ -766,36 +940,12 @@ def google_places_restaurants(request):
     # Google Places API endpoint for nearby search
     url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
     
-    # Search for all food-related establishments with multiple approaches
-    search_strategies = [
-        # Strategy 1: By type
-        {'type': 'restaurant'},
-        {'type': 'food'},
-        {'type': 'cafe'},
-        {'type': 'bakery'},
-        {'type': 'bar'},
-        {'type': 'meal_takeaway'},
-        {'type': 'meal_delivery'},
-        
-        # Strategy 2: By keyword (more comprehensive)
-        {'keyword': 'restaurant'},
-        {'keyword': 'cafe'},
-        {'keyword': 'food'},
-        {'keyword': 'dining'},
-        {'keyword': 'eatery'},
-        {'keyword': 'bakery'},
-        {'keyword': 'bar'},
-        {'keyword': 'pub'},
-        {'keyword': 'bistro'},
-        {'keyword': 'deli'},
-        {'keyword': 'fast food'},
-        {'keyword': 'takeaway'},
-        {'keyword': 'coffee'},
-        {'keyword': 'ice cream'},
-        {'keyword': 'pizza'},
-        {'keyword': 'burger'},
-        {'keyword': 'sandwich'},
-    ]
+    # Use enhanced search strategies from the categorization module
+    import sys
+    import os
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+    from google_places_categories import get_comprehensive_search_strategies
+    search_strategies = get_comprehensive_search_strategies()
     
     all_places = []
     
@@ -836,11 +986,15 @@ def google_places_restaurants(request):
         if place.get('business_status') == 'CLOSED_PERMANENTLY':
             continue
             
-        # Categorize the establishment
+        # Categorize the establishment using enhanced system
         place_types = place.get('types', [])
         place_name = place.get('name', '')
-        cuisine_type = categorize_place_type(place_types, place_name)
-        establishment_type = categorize_establishment_type(place_types)
+        
+        # Use the enhanced categorization function
+        from google_places_categories import categorize_google_place
+        categorization_result = categorize_google_place(place)
+        cuisine_type = categorization_result['cuisine']
+        establishment_type = categorization_result['establishment_type']
         
         # Debug logging for categorization
         if (cuisine_filter and cuisine_filter != "") or (establishment_filter and establishment_filter != ""):
@@ -874,7 +1028,7 @@ def google_places_restaurants(request):
         # Calculate distance
         place_lat = place['geometry']['location']['lat']
         place_lon = place['geometry']['location']['lng']
-        distance = geodesic((user_lat, user_lon), (place_lat, place_lon)).km
+        distance = calculate_distance(user_lat, user_lon, place_lat, place_lon)
         
         # Get price level and rating
         price_level = place.get('price_level')
@@ -934,27 +1088,144 @@ def google_places_restaurants(request):
         'source': 'google_places_all_food'
     })
 
-def get_establishment_type(place_types):
+def save_google_place_to_supabase(place_data, categorization_result):
     """
-    Determine the primary establishment type for display purposes.
+    Save Google Places restaurant data to Supabase database
     """
-    type_hierarchy = {
-        'restaurant': 'Restaurant',
-        'cafe': 'Cafe',
-        'bakery': 'Bakery', 
-        'bar': 'Bar',
-        'fast_food_restaurant': 'Fast Food',
-        'meal_takeaway': 'Takeaway',
-        'meal_delivery': 'Delivery',
-        'food_truck': 'Food Truck',
-        'ice_cream_shop': 'Ice Cream',
-        'coffee_shop': 'Coffee Shop',
-        'food': 'Food Establishment'
-    }
-    
-    # Check in order of preference
-    for place_type in place_types:
-        if place_type in type_hierarchy:
-            return type_hierarchy[place_type]
-    
-    return 'Food Place'
+    try:
+        place_id = place_data.get('place_id')
+        if not place_id:
+            return None, "No place_id provided"
+        
+        # Check if restaurant already exists
+        restaurant, created = GooglePlacesRestaurant.objects.get_or_create(
+            google_place_id=place_id,
+            defaults={}
+        )
+        
+        # Update restaurant data
+        restaurant.name = place_data.get('name', 'Unknown Restaurant')
+        restaurant.formatted_address = place_data.get('formatted_address', '')
+        
+        # Location
+        geometry = place_data.get('geometry', {}).get('location', {})
+        restaurant.latitude = geometry.get('lat', 0)
+        restaurant.longitude = geometry.get('lng', 0)
+        
+        # Contact info
+        restaurant.phone = place_data.get('formatted_phone_number', '')
+        restaurant.website = place_data.get('website', '')
+        restaurant.google_url = place_data.get('url', '')
+        
+        # Restaurant categorization
+        restaurant.cuisine_type = categorization_result.get('cuisine', 'OTHER')
+        restaurant.establishment_type = categorization_result.get('establishment_type', 'RESTAURANT')
+        
+        # Pricing
+        price_level = place_data.get('price_level')
+        restaurant.price_level = price_level
+        if price_level is not None:
+            price_mapping = {0: '$', 1: '$', 2: '$$', 3: '$$$', 4: '$$$$'}
+            restaurant.price_range = price_mapping.get(price_level, '$$')
+        
+        # Ratings
+        restaurant.rating = place_data.get('rating', 0)
+        restaurant.user_ratings_total = place_data.get('user_ratings_total', 0)
+        
+        # Opening hours
+        opening_hours = place_data.get('opening_hours', {})
+        if opening_hours.get('weekday_text'):
+            restaurant.opening_hours_text = '\n'.join(opening_hours['weekday_text'])
+        restaurant.is_open_now = opening_hours.get('open_now')
+        
+        # Check if open 24 hours
+        if opening_hours.get('periods'):
+            for period in opening_hours['periods']:
+                if period.get('open') and not period.get('close'):
+                    restaurant.is_open_24_hours = True
+                    break
+        
+        # Service options
+        place_types = place_data.get('types', [])
+        restaurant.delivery_available = 'meal_delivery' in place_types
+        restaurant.takeout_available = 'meal_takeaway' in place_types
+        
+        # Business status
+        restaurant.business_status = place_data.get('business_status', 'OPERATIONAL')
+        
+        # Store Google types
+        restaurant.google_types = place_types
+        
+        # Store photo references
+        photos = place_data.get('photos', [])
+        restaurant.photo_references = photos[:10]  # Store up to 10 photos
+        
+        # Store reviews
+        reviews = place_data.get('reviews', [])
+        restaurant.reviews_data = reviews[:5]  # Store up to 5 reviews
+        
+        # Set cache expiry (24 hours)
+        restaurant.set_cache_expiry(24)
+        
+        # Save to Supabase
+        restaurant.save()
+        
+        action = "Created" if created else "Updated"
+        return restaurant, f"{action} restaurant '{restaurant.name}' in Supabase"
+        
+    except Exception as e:
+        return None, f"Error saving to Supabase: {str(e)}"
+
+def get_or_fetch_google_restaurant(place_id, force_refresh=False):
+    """
+    Get restaurant from Supabase cache or fetch from Google Places API
+    """
+    try:
+        # Try to get from Supabase first
+        if not force_refresh:
+            try:
+                restaurant = GooglePlacesRestaurant.objects.get(google_place_id=place_id)
+                if restaurant.is_cache_valid():
+                    return restaurant, "Retrieved from Supabase cache"
+            except GooglePlacesRestaurant.DoesNotExist:
+                pass
+        
+        # Fetch fresh data from Google Places API
+        api_key = settings.GOOGLE_MAPS_API_KEY
+        if not api_key:
+            return None, "Google Maps API key not configured"
+        
+        # Google Places API call
+        url = "https://maps.googleapis.com/maps/api/place/details/json"
+        params = {
+            'place_id': place_id,
+            'fields': 'place_id,name,formatted_address,geometry,formatted_phone_number,website,opening_hours,price_level,rating,user_ratings_total,reviews,photos,types,business_status,url',
+            'key': api_key
+        }
+        
+        response = requests.get(url, params=params)
+        response.raise_for_status()
+        data = response.json()
+        
+        if data.get('status') != 'OK':
+            return None, f"Google Places API error: {data.get('status')}"
+        
+        place_data = data.get('result', {})
+        
+        # Categorize the restaurant
+        import sys
+        import os
+        sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+        from google_places_categories import categorize_google_place
+        categorization_result = categorize_google_place(place_data)
+        
+        # Save to Supabase
+        restaurant, save_message = save_google_place_to_supabase(place_data, categorization_result)
+        
+        if restaurant:
+            return restaurant, f"Fetched from Google and saved to Supabase: {save_message}"
+        else:
+            return None, save_message
+            
+    except Exception as e:
+        return None, f"Error fetching restaurant: {str(e)}"
